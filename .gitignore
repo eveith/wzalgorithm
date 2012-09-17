@@ -41,4 +41,8 @@ obj/
 [Rr]elease*/
 Ankh.NoLoad
 *.so*
-Makefile
+Makefile*
+*.pro.user
+*.out
+*.dvi
+*~
