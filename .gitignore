@@ -9,4 +9,4 @@ Makefile.*
 *~
 *.so*
 moc_*
-.*.prefs
+*.prefs
