@@ -8,3 +8,5 @@ Makefile.*
 *.sw?
 *~
 *.so*
+moc_*
+.*.prefs
