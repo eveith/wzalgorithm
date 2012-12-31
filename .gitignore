@@ -10,3 +10,5 @@ Makefile.*
 *.so*
 moc_*
 *.prefs
+.cproject
+.project
