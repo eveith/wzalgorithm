@@ -8,7 +8,7 @@ Makefile.*
 *.sw?
 *~
 *.so*
-moc_*
+moc_*.*
 *.prefs
 .cproject
 .project
