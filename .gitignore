@@ -12,3 +12,4 @@ moc_*.*
 *.prefs
 .cproject
 .project
+*.pro.user*
