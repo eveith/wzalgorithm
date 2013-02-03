@@ -1,7 +1,7 @@
 Makefile
+Makefile.*
 *.pro.user
 *.o
-*.pdf
 *.out
 *.log
 *.sw?
@@ -47,3 +47,10 @@ obj/
 [Dd]ebug*/
 [Rr]elease*/
 Ankh.NoLoad
+*~
+*.so*
+moc_*.*
+*.prefs
+.cproject
+.project
+*.pro.user*
