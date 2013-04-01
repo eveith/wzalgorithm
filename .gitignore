@@ -54,3 +54,5 @@ moc_*.*
 .cproject
 .project
 *.pro.user*
+log
+*.log
