@@ -56,3 +56,4 @@ moc_*.*
 *.pro.user*
 log
 *.log
+qrc_*.cpp
