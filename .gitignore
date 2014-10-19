@@ -57,3 +57,4 @@ moc_*.*
 log
 *.log
 qrc_*.cpp
+winzent-*.tar*
