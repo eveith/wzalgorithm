@@ -1,0 +1,10 @@
+add_subdirectory(common)
+add_subdirectory(test-common)
+
+add_subdirectory(model)
+add_subdirectory(ann)
+add_subdirectory(messaging)
+add_subdirectory(agent)
+add_subdirectory(simulation)
+add_subdirectory(WinzentSimulationService)
+add_subdirectory(WinzentView)
