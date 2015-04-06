@@ -17,8 +17,7 @@ configure_file(
     "${CMAKE_CURRENT_BINARY_DIR}/winzent.spec")
 
 add_custom_target(srctar
-    ALL
-    COMMAND tar 
+    COMMAND tar
         "-C" "${CMAKE_CURRENT_SOURCE_DIR}"
         "-vcJf" "winzent-${WINZENT_VERSION}.tar.xz"
         "--exclude-vcs" "--exclude-backups"
