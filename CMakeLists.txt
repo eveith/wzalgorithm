@@ -20,6 +20,7 @@ add_custom_target(srctar
     COMMAND tar
         "-C" "${CMAKE_CURRENT_SOURCE_DIR}"
         "-vcJf" "winzent-${WINZENT_VERSION}.tar.xz"
+        "--xform='s,^,winzent-${WINZENT_VERSION}/,'"
         "--exclude-vcs" "--exclude-backups"
         "--exclude=Makefile" "--exclude=src/flavormap" "--exclude='*.so*'"
         "src" "test" "CMakeLists.txt" "README")
