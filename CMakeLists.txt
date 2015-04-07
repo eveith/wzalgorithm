@@ -16,6 +16,11 @@ configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/winzent.spec.in"
     "${CMAKE_CURRENT_BINARY_DIR}/winzent.spec")
 
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/VERSION.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/VERSION")
+
+
 add_custom_target(srctar
     COMMAND tar
         "-C" "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -23,7 +28,7 @@ add_custom_target(srctar
         "--xform='s,^,winzent-${WINZENT_VERSION}/,'"
         "--exclude-vcs" "--exclude-backups"
         "--exclude=Makefile" "--exclude=src/flavormap" "--exclude='*.so*'"
-        "src" "test" "CMakeLists.txt" "README" "winzent.spec.in")
+        "src" "test" "CMakeLists.txt" "README" "VERSION.in" "winzent.spec.in")
 
 
 add_subdirectory(src)
