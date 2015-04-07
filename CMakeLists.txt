@@ -28,7 +28,8 @@ add_custom_target(srctar
         "--xform='s,^,winzent-${WINZENT_VERSION}/,'"
         "--exclude-vcs" "--exclude-backups"
         "--exclude=Makefile" "--exclude=src/flavormap" "--exclude='*.so*'"
-        "src" "test" "CMakeLists.txt" "README" "VERSION.in" "winzent.spec.in")
+        "src" "test" "CMakeLists.txt"
+        "README" "COPYING" "VERSION.in" "winzent.spec.in")
 
 
 add_subdirectory(src)
