@@ -10,6 +10,7 @@ set(WINZENT_VERSION
 
 include(CTest)
 include(FindPkgConfig)
+include(GNUInstallDirs)
 
 
 configure_file(
