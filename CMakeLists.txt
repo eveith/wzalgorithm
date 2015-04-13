@@ -34,5 +34,6 @@ add_custom_target(srctar
 
 
 add_subdirectory(src)
+add_subdirectory(doc)
 add_subdirectory(test)
 add_subdirectory(experiment)
