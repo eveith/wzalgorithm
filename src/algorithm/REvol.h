@@ -12,7 +12,9 @@ namespace Winzent {
          */
         class REvol
         {
+        public:
 
+        private:
         };
     }
 }

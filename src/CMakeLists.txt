@@ -2,6 +2,7 @@ add_subdirectory(common)
 add_subdirectory(test-common)
 
 add_subdirectory(model)
+add_subdirectory(algorithm)
 add_subdirectory(ann)
 add_subdirectory(messaging)
 add_subdirectory(agent)
