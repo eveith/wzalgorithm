@@ -15,6 +15,11 @@ set(winzent-algorithm_HEADERS
     algorithm_global.h
     REvol.h)
 
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+find_package(Qt5Core REQUIRED)
+
 
 # Tweak for C++14:
 
@@ -25,8 +30,11 @@ endif()
 
 
 add_library(winzent-algorithm SHARED ${winzent-algorithm_SOURCES})
-# target_link_libraries(winzent-algorithm ...)
-set_target_properties(winzent-algorithm 
+#target_include_directories(winzent-algorithm ...)
+target_link_libraries(winzent-algorithm
+    m
+    Qt5::Core)
+set_target_properties(winzent-algorithm
     PROPERTIES SOVERSION ${winzent-algorithm_SOVERSION})
 
 install(TARGETS winzent-algorithm LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
