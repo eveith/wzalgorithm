@@ -16,7 +16,6 @@
 #include <boost/ptr_container/ptr_vector.hpp>
 
 #include "REvol.h"
-#include "algorithm_global.h"
 
 
 #pragma STDC FENV_ACCESS ON
@@ -70,6 +69,12 @@ namespace Winzent {
                 return 1;
             } else if (restrictions.at(0) > other.restrictions.at(0)) {
                 return -1;
+            } else if (restrictions.at(0) == other.restrictions.at(0)) {
+                if (timeToLive > other.timeToLive) {
+                    return 1;
+                } else {
+                    return 0;
+                }
             } else {
                 auto size = (
                         restrictions.size() > other.restrictions.size()
@@ -140,7 +145,7 @@ namespace Winzent {
         {
             qreal r = 0.0;
 
-            if (t != 0) {
+            if (t + 1.0 != 1.0) {
                 r = y + ((u - y) / t);
             } else {
                 r = u;
@@ -175,7 +180,7 @@ namespace Winzent {
                 m_maxNoSuccessEpochs(0),
                 m_populationSize(0),
                 m_eliteSize(0),
-                m_gradientWeight(1.8),
+                m_gradientWeight(1.0),
                 m_successWeight(1.0),
                 m_eamin(1e-30),
                 m_ebmin(1e-7),
@@ -197,6 +202,9 @@ namespace Winzent {
         REvol &REvol::maxEpochs(const size_t &epochs)
         {
             m_maxEpochs = epochs;
+            if (0 == maxNoSuccessEpochs()) {
+                maxNoSuccessEpochs(epochs);
+            }
             return *this;
         }
 
@@ -476,7 +484,7 @@ namespace Winzent {
                     xlp *= 0.5;
                 }
 
-                xlp *= exp(successWeight() * successRate);
+                xlp *= exp(gradientWeight() * successRate);
             }
 
             // Now modify the new individual:
@@ -577,7 +585,6 @@ namespace Winzent {
             size_t epoch       = 0;
             bool successful    = false;
             Population population = generateInitialPopulation(origin);
-            Individual &bestIndividual = population.front();
 
             do {
                 // Modify the worst individual:
@@ -604,29 +611,30 @@ namespace Winzent {
                 // Check for addition of a new individual:
 
                 Individual &newIndividual = population.back();
+                Individual &bestIndividual = population.front();
                 Individual &worstIndividual = population.at(
                         population.size() - 2);
 
                 // Check for global or, at least, local improvement:
 
+                if (newIndividual.isBetterThan(worstIndividual)) {
+                    if (worstIndividual.timeToLive >= 0) {
+                        m_success = pt1(
+                                m_success,
+                                1.0,
+                                measurementEpochs());
+                    } else {
+                        m_success = pt1(
+                                m_success,
+                                -1.0,
+                                measurementEpochs());
+                    }
+                }
+
                 if (newIndividual.isBetterThan(bestIndividual)) {
                     lastSuccess = epoch;
-                    bestIndividual = newIndividual;
-                    bestIndividual.timeToLive = epoch;
-                } else {
-                    if (newIndividual.isBetterThan(worstIndividual)) {
-                        if (worstIndividual.timeToLive >= 0) {
-                            m_success = pt1(
-                                    m_success,
-                                    1.0,
-                                    measurementEpochs());
-                        } else {
-                            m_success = pt1(
-                                    m_success,
-                                    -1.0,
-                                    measurementEpochs());
-                        }
-                    }
+                    newIndividual.timeToLive = 0;
+                    //bestIndividual.timeToLive = epoch;
                 }
 
                 // Sort the list and do a bit of caretaking:
@@ -641,11 +649,12 @@ namespace Winzent {
                         "Iteration(epoch = " << epoch
                             << ", success = " << m_success
                             << ", targetSuccess = " << m_targetSuccess
-                            << ", bestIndividual = " << bestIndividual
+                            << ", lastSuccess = " << lastSuccess
+                            << ", population = " << population
                             << ")");
             } while (! successful
                     && epoch < maxEpochs()
-                    && epoch - lastSuccess < maxNoSuccessEpochs());
+                    && epoch - lastSuccess <= maxNoSuccessEpochs());
 
             LOG4CXX_DEBUG(
                     logger,
@@ -691,7 +700,7 @@ namespace std {
             }
         }
 
-        os << ")";
+        os << "))";
 
         return os;
     }
@@ -710,6 +719,23 @@ namespace std {
                 << ", ebmin = " << algorithm.ebmin()
                 << ", ebmax = " << algorithm.ebmax();
         os << ")";
+        return os;
+    }
+
+
+    ostream &operator<<(
+            ostream &os,
+            const boost::ptr_vector<Winzent::Algorithm::Individual> &v)
+    {
+        os << "(";
+        for (const Winzent::Algorithm::Individual &i: v) {
+            os << i;
+            if (&i != &(v.back())) {
+                os << ", ";
+            }
+        }
+        os << ")";
+
         return os;
     }
 }

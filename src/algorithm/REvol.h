@@ -36,7 +36,7 @@ namespace Winzent {
 
 
             //! The individual's time to live: How long may it exist?
-            int timeToLive;
+            ptrdiff_t timeToLive;
 
 
             //! Restrictions specifing the fitness of the individual
@@ -593,6 +593,9 @@ namespace std {
     ostream &operator<<(
             ostream &os,
             const Winzent::Algorithm::Individual &individual);
+    ostream &operator<<(
+            ostream &os,
+            const boost::ptr_vector<Winzent::Algorithm::Individual> &v);
     ostream &operator<<(
             ostream &os,
             const Winzent::Algorithm::REvol &algorithm);

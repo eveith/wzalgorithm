@@ -2,6 +2,7 @@ add_subdirectory(ann)
 add_subdirectory(model)
 add_subdirectory(agent)
 add_subdirectory(common)
+add_subdirectory(algorithm)
 add_subdirectory(simulation)
 file(
     COPY simulation/mock
