@@ -72,8 +72,6 @@ namespace Winzent {
             } else if (restrictions.at(0) == other.restrictions.at(0)) {
                 if (timeToLive > other.timeToLive) {
                     return 1;
-                } else {
-                    return 0;
                 }
             } else {
                 auto size = (
@@ -188,7 +186,9 @@ namespace Winzent {
                 m_startTTL(0),
                 m_measurementEpochs(5000),
                 m_success(0.25),
-                m_targetSuccess(0.25)
+                m_targetSuccess(0.25),
+                m_normalDistributionZero(0.0, 0.5),
+                m_normalDistributionMinusTwo(-2.0, 0.5)
         {
         }
 
@@ -422,6 +422,8 @@ namespace Winzent {
 
             Individual *baseIndividual = new Individual(origin);
             baseIndividual->timeToLive = startTTL();
+            baseIndividual->restrictions.push_front(
+                    std::numeric_limits<qreal>::infinity());
 
             Population population;
             population.push_back(baseIndividual);
@@ -432,6 +434,8 @@ namespace Winzent {
                 individual->timeToLive = startTTL();
                 individual->parameters.reserve(numParameters);
                 individual->scatter.reserve(numParameters);
+                individual->restrictions.push_back(
+                        numeric_limits<qreal>::infinity());
 
                 for (auto j = 0; j != numParameters; ++j) {
                     qreal r = baseIndividual->scatter.at(j) * exp(
@@ -439,7 +443,8 @@ namespace Winzent {
                     individual->scatter.push_back(r);
                     individual->parameters.push_back(
                             baseIndividual->parameters.at(j)
-                                +r * (frandom()-frandom()+frandom()-frandom()));
+                                + r * m_normalDistributionZero(
+                                    m_randomNumberGenerator));
                 }
 
                 population.push_back(individual);
@@ -474,10 +479,7 @@ namespace Winzent {
             qreal expvar = exp(frandom() - frandom());
 
             if (2 == gradientSwitch) {
-                xlp = (frandom() + frandom() + frandom() + frandom()
-                        + frandom() + frandom() + frandom() + frandom()
-                        + frandom() + frandom() - frandom() - frandom()
-                        - frandom() - frandom() - frandom() - frandom())
+                xlp = m_normalDistributionMinusTwo(m_randomNumberGenerator)
                     * gradientWeight();
 
                 if (xlp > 0.0) {
@@ -617,7 +619,7 @@ namespace Winzent {
 
                 // Check for global or, at least, local improvement:
 
-                if (newIndividual.isBetterThan(worstIndividual)) {
+                if (! worstIndividual.isBetterThan(newIndividual)) {
                     if (worstIndividual.timeToLive >= 0) {
                         m_success = pt1(
                                 m_success,
@@ -633,8 +635,8 @@ namespace Winzent {
 
                 if (newIndividual.isBetterThan(bestIndividual)) {
                     lastSuccess = epoch;
-                    newIndividual.timeToLive = 0;
-                    //bestIndividual.timeToLive = epoch;
+                    //newIndividual.timeToLive = 0;
+                    newIndividual.timeToLive = epoch;
                 }
 
                 // Sort the list and do a bit of caretaking:
@@ -642,7 +644,6 @@ namespace Winzent {
                 sortPopulation(population);
                 agePopulation(population);
                 m_success = pt1(m_success, 0.0, measurementEpochs());
-                epoch++;
 
                 LOG4CXX_DEBUG(
                         logger,
@@ -652,6 +653,8 @@ namespace Winzent {
                             << ", lastSuccess = " << lastSuccess
                             << ", population = " << population
                             << ")");
+
+                epoch++;
             } while (! successful
                     && epoch < maxEpochs()
                     && epoch - lastSuccess <= maxNoSuccessEpochs());

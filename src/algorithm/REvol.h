@@ -560,6 +560,16 @@ namespace Winzent {
             boost::random::uniform_01<qreal> m_uniformDistribution;
 
 
+            //! A normal distribution with mean 0.
+            boost::random::normal_distribution<qreal>
+                    m_normalDistributionZero;
+
+
+            //! A normal distribution with mean -2.
+            boost::random::normal_distribution<qreal>
+                    m_normalDistributionMinusTwo;
+
+
             //! The uniform integer distribution used to select individuals
             boost::uniform_int<> m_rnDistribution;
 
