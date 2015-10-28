@@ -119,7 +119,7 @@ namespace Winzent {
                 return (other.timeToLive == timeToLive
                         && other.restrictions == restrictions
                         && other.scatter == scatter
-                        && other.parameters() == parameters());
+                        && other.parameters == parameters);
 #endif
         }
 
@@ -429,7 +429,7 @@ namespace Winzent {
             population.push_back(baseIndividual);
             auto numParameters = baseIndividual->parameters.size();
 
-            for (auto i = 1; i < populationSize() + 1; ++i) {
+            for (size_t i = 1; i < populationSize() + 1; ++i) {
                 Individual *individual = new Individual();
                 individual->timeToLive = startTTL();
                 individual->parameters.reserve(numParameters);
