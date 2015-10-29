@@ -9,11 +9,13 @@ set(winzent-algorithm_SOVERSION
     "${winzent-algorithm_MAJOR_VERSION}.${winzent-algorithm_MINOR_VERSION}")
 
 set(winzent-algorithm_SOURCES
-    REvol.cpp)
+    REvol.cpp
+    SimulatedAnnealing.cpp)
 
 set(winzent-algorithm_HEADERS
     algorithm_global.h
-    REvol.h)
+    REvol.h
+    SimulatedAnnealing.h)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
