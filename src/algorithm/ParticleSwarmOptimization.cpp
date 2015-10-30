@@ -1,5 +1,6 @@
 #include <cmath>
 #include <tuple>
+#include <limits>
 #include <cstddef>
 #include <functional>
 
@@ -20,7 +21,7 @@ namespace Winzent {
 
         ParticleSwarmOptimization::ParticleSwarmOptimization():
                 m_swarmSize(DEFAULT_SWARM_SIZE),
-                m_maxIterations(0)
+                m_maxIterations(std::numeric_limits<size_t>::max())
         {
         }
 
@@ -118,8 +119,8 @@ namespace Winzent {
                     particle.velocity.push_back(v);
                 }
 
-                particle.currentFitness = evaluator(
-                        particle.currentPosition);
+                auto evaluation = evaluator(particle.currentPosition);
+                particle.currentFitness = std::get<0>(evaluation);
                 particle.bestFitness = particle.currentFitness;
                 particle.bestPosition = particle.currentPosition;
 
@@ -160,8 +161,9 @@ namespace Winzent {
 
             std::sort(swarm.begin(), swarm.end());
             best = &(swarm.front());
+            bool success = false;
 
-            for (size_t i = 0; i != maxIterations(); ++i) {
+            for (size_t i = 0; i != maxIterations() && !success; ++i) {
                 for (auto &particle: swarm) {
                     for (size_t j = 0; j != particle.currentPosition.size();
                             ++j) {
@@ -177,16 +179,18 @@ namespace Winzent {
                                 W * particle.velocity[j] + r;
                     }
 
-                    particle.currentFitness = evaluator(
-                            particle.currentPosition);
-                    if (particle.currentFitness > particle.bestFitness) {
+                    auto evaluation = evaluator(particle.currentPosition);
+                    particle.currentFitness = std::get<0>(evaluation);
+                    if (particle.currentFitness < particle.bestFitness) {
                         particle.bestFitness = particle.currentFitness;
                         particle.bestPosition = particle.currentPosition;
                     }
 
-                    if (particle.bestFitness > best->bestFitness) {
+                    if (particle.bestFitness < best->bestFitness) {
                         best = &particle;
                     }
+
+                    success = std::get<1>(evaluation);
                 }
             }
 

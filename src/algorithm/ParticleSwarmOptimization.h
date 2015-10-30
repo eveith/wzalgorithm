@@ -66,7 +66,8 @@ namespace Winzent {
              *
              * \sa #run()
              */
-            typedef std::function<qreal(const QVector<qreal> &)> Evaluator;
+            typedef std::function<
+                    std::tuple<qreal, bool>(const QVector<qreal> &)> Evaluator;
 
 
             //! The Swarm data type

@@ -49,13 +49,13 @@ ParticleSwarmOptimizationTest::ParticleSwarmOptimizationTest(QObject *parent):
 void ParticleSwarmOptimizationTest::testPeaks()
 {
     ParticleSwarmOptimization pso;
-    pso.lowerBoundary(-10.0).upperBoundary(10.0);
+    pso.lowerBoundary(-10.0).upperBoundary(10.0).maxIterations(5000);
 
     bool success = false;
     pso.run(2, [&success](const QVector<qreal> &parameters) {
         qreal r = peaks(parameters[0], parameters[1]);
         success |= (r <= -6.0);
-        return success;
+        return std::make_tuple(r, success);
     });
 
     QVERIFY(success);
@@ -65,18 +65,18 @@ void ParticleSwarmOptimizationTest::testPeaks()
 void ParticleSwarmOptimizationTest::testAckley()
 {
     ParticleSwarmOptimization pso;
-    pso.lowerBoundary(-10.0).upperBoundary(10.0);
+    pso.lowerBoundary(-32.0).upperBoundary(32.0).maxIterations(50000);
 
     bool success = false;
     auto p = pso.run(2, [&success](const QVector<qreal> &parameters) {
         qreal r = ackley(parameters[0], parameters[1]);
-        success |= (r + 1.0 < 1.0000000001);
-        return success;
+        success |= (r + 1.0 < 1.1);
+        return std::make_tuple(r, success);
     });
 
     QCOMPARE(1.0 + ackley(0.0, 0.0), 1.0);
     QVERIFY(success);
-    QVERIFY(ackley(p[0], p[1]) + 1.0 < 1.000000001);
+    QVERIFY(ackley(p[0], p[1]) + 1.0 < 1.1);
 }
 
 REGISTER_TESTCASE(ParticleSwarmOptimizationTest);
