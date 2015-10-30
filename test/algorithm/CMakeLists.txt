@@ -4,10 +4,12 @@ cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 
 set(test-winzent-algorithm_SOURCES
     REvolTest.cpp
+    ParticleSwarmOptimizationTest.cpp
     tst_algorithm.cpp)
 
 set(test-winzent-algorithm_HEADERS
-    REvolTest.h)
+    REvolTest.h
+    ParticleSwarmOptimizationTest.h)
 
 
 set(CMAKE_AUTOMOC ON)

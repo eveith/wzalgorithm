@@ -7,13 +7,13 @@
 
 #include <boost/random.hpp>
 
-#include "agent_global.h"
+#include "algorithm_global.h"
 
 
 namespace Winzent {
     namespace Algorithm {
 
-        class AGENTSHARED_EXPORT SimulatedAnnealing
+        class ALGORTHMSHARED_EXPORT SimulatedAnnealing
         {
         public:
 

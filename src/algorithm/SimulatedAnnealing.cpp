@@ -18,7 +18,8 @@ namespace Winzent {
         }
 
 
-        void SimulatedAnnealing::maxIterations(const size_t &iterations)
+        SimulatedAnnealing &SimulatedAnnealing::maxIterations(
+                const size_t &iterations)
         {
             m_maxIterations = iterations;
             return *this;

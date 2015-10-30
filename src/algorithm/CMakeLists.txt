@@ -10,12 +10,14 @@ set(winzent-algorithm_SOVERSION
 
 set(winzent-algorithm_SOURCES
     REvol.cpp
-    SimulatedAnnealing.cpp)
+    SimulatedAnnealing.cpp
+    ParticleSwarmOptimization.cpp)
 
 set(winzent-algorithm_HEADERS
     algorithm_global.h
     REvol.h
-    SimulatedAnnealing.h)
+    SimulatedAnnealing.h
+    ParticleSwarmOptimization.h)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)

@@ -2,6 +2,7 @@
 #define WINZENT_ALGORITHM_PARTICLESWARMOPTIMIZATION_H
 
 
+#include <tuple>
 #include <cstddef>
 #include <functional>
 
@@ -27,7 +28,7 @@ namespace Winzent {
                 QVector<qreal> bestPreviousBestPosition;
                 QVector<qreal> velocity;
 
-                bool operator <(const Particle &rhs) {
+                bool operator <(const Particle &rhs) const {
                     return bestFitness < rhs.bestFitness;
                 }
             };
@@ -40,7 +41,15 @@ namespace Winzent {
 
 
             //! Pre-defined default swarm size (cp. SPSO 2007)
-            const size_t DEFAULT_SWARM_SIZE = 40;
+            static const size_t DEFAULT_SWARM_SIZE = 40;
+
+
+            //! The contant C, ~1.193
+            static const qreal C;
+
+
+            //! The contant W, ~0.721
+            static const qreal W;
 
 
             /*!
@@ -57,7 +66,15 @@ namespace Winzent {
              *
              * \sa #run()
              */
-            typedef std::function<qreal(QVector<qreal>)> Evaluator;
+            typedef std::function<qreal(const QVector<qreal> &)> Evaluator;
+
+
+            //! The Swarm data type
+            typedef QVector<detail::Particle> Swarm;
+
+
+            //! Three neighbors to a particle
+            typedef std::tuple<size_t, size_t, size_t> NeighborIndices;
 
 
             ParticleSwarmOptimization();
@@ -141,6 +158,23 @@ namespace Winzent {
 
 
             /*!
+             * \brief Calculates the neighbors of a particle
+             *
+             * Uses the ring topology methodology to calculate the neighbors
+             * of a given patricle in the swarm.
+             *
+             * \param[in] particleIndex The particle index to find the
+             *  neighbors for
+             *
+             * \return The indices of the particle's neighbors
+             */
+            NeighborIndices neighbors(
+                    const size_t &particleIndex,
+                    const size_t &swarmSize)
+                    const;
+
+
+            /*!
              * \brief Creates the initial swarm
              *
              * \param[in] dimension Dimension of the search space, i.e., the
@@ -150,8 +184,7 @@ namespace Winzent {
              */
             Swarm createSwarm(
                     const size_t &dimension,
-                    const Evaluator &evaluator)
-                    const;
+                    const Evaluator &evaluator);
 
 
             /*!
@@ -170,10 +203,6 @@ namespace Winzent {
 
 
         private:
-
-
-            //! The Swarm data type
-            typedef QVector<detail::Particle> Swarm;
 
 
             //! The size of the swarm
@@ -197,7 +226,7 @@ namespace Winzent {
 
 
             //! A uniform distribution for the RNG, [0;1)
-            boost::random::uniform_01 m_uniformDistribution;
+            boost::random::uniform_01<qreal> m_uniformDistribution;
         };
     } // namespace Algorithm
 } // namespace Winzent
