@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <functional>
 
+#include <QList>
 #include <QVector>
 
 #include <boost/random.hpp>
@@ -96,6 +97,22 @@ namespace Winzent {
         }
 
 
+        QVector<qreal> ParticleSwarmOptimization::bestPreviousBestPosition(
+                const ParticleSwarmOptimization::Neighborhood &neighborhood)
+                const
+        {
+            auto *best = neighborhood.front();
+
+            for (auto &particle: neighborhood) {
+                if (particle->bestFitness < best->bestFitness) {
+                    best = particle;
+                }
+            }
+
+            return best->bestPosition;
+        }
+
+
         ParticleSwarmOptimization::Swarm
         ParticleSwarmOptimization::createSwarm(
                 const size_t &dimension,
@@ -127,27 +144,6 @@ namespace Winzent {
                 swarm.push_back(particle);
             }
 
-            // Now we need to compute the neighborhood information. We need to
-            // iterate again over the swarm, sadly.
-
-            for (size_t i = 0; i != swarmSize(); ++i) {
-                NeighborIndices ni = neighbors(i, swarmSize());
-                qreal fitness = swarm.at(std::get<0>(ni)).currentFitness;
-                size_t index = 0;
-
-                if (swarm.at(std::get<1>(ni)).currentFitness < fitness) {
-                    index = 1;
-                    fitness = swarm.at(std::get<1>(ni)).currentFitness;
-                }
-                if (swarm.at(std::get<2>(ni)).currentFitness < fitness) {
-                    index = 2;
-                    fitness = swarm.at(std::get<2>(ni)).currentFitness;
-                }
-
-                swarm[i].bestPreviousBestPosition =
-                        swarm[index].currentPosition;
-            }
-
             return swarm;
         }
 
@@ -164,19 +160,42 @@ namespace Winzent {
             bool success = false;
 
             for (size_t i = 0; i != maxIterations() && !success; ++i) {
-                for (auto &particle: swarm) {
+                for (int k = 0; k != swarm.size(); ++k) {
+                    auto &particle = swarm[k];
+                    auto neighborIndices = neighbors(k, swarm.size());
+                    auto bestNeighborhoodPosition = bestPreviousBestPosition({
+                            &(swarm[std::get<0>(neighborIndices)]),
+                            &(swarm[std::get<1>(neighborIndices)]),
+                            &(swarm[std::get<2>(neighborIndices)]) });
+
                     for (size_t j = 0; j != particle.currentPosition.size();
                             ++j) {
+                        bool isBestInNeighborhood = (particle.bestPosition
+                                == bestNeighborhoodPosition);
                         qreal v = particle.velocity[j];
                         qreal x = particle.currentPosition[j];
                         qreal p = particle.bestPosition[j];
-                        qreal g = x + C * ((p - x)/2.0);
+                        qreal l = bestNeighborhoodPosition[j];
+                        qreal g = (isBestInNeighborhood
+                                ? x + C * ((p - x) / 3.0)
+                                : x + C * ((p + l - 2.0 * x) / 3.0));
                         qreal r = g + ((g-x)-g) * m_uniformDistribution(
                                 m_randomNumberGenerator);
 
-                        particle.velocity[j] = W*v + r - x;
-                        particle.currentPosition[j] =
-                                W * particle.velocity[j] + r;
+                        qreal newV = W*v + r - x;
+                        qreal newX = W * particle.velocity[j] + r;
+
+                        if (newX < lowerBoundary()) {
+                            newX = lowerBoundary();
+                            newV *= -0.5;
+                        }
+                        if (newX > upperBoundary()) {
+                            newX = upperBoundary();
+                            newV *= -0.5;
+                        }
+
+                        particle.velocity[j] = newV;
+                        particle.currentPosition[j] = newX;
                     }
 
                     auto evaluation = evaluator(particle.currentPosition);

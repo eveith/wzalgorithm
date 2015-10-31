@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <functional>
 
+#include <QList>
 #include <QVector>
 
 #include <boost/random.hpp>
@@ -25,7 +26,6 @@ namespace Winzent {
                 qreal currentFitness;
                 QVector<qreal> bestPosition;
                 QVector<qreal> currentPosition;
-                QVector<qreal> bestPreviousBestPosition;
                 QVector<qreal> velocity;
 
                 bool operator <(const Particle &rhs) const {
@@ -76,6 +76,12 @@ namespace Winzent {
 
             //! Three neighbors to a particle
             typedef std::tuple<size_t, size_t, size_t> NeighborIndices;
+
+
+            /*!
+             * \brief A particle neighborhood
+             */
+            typedef QList<const detail::Particle *> Neighborhood;
 
 
             ParticleSwarmOptimization();
@@ -172,6 +178,21 @@ namespace Winzent {
             NeighborIndices neighbors(
                     const size_t &particleIndex,
                     const size_t &swarmSize)
+                    const;
+
+
+            /*!
+             * \brief bestPreviousBestPosition retrieves the argmin of all
+             *  previous best positions in a neighboorhood
+             *
+             * \param[in] neighborhood The particles that form a neighborhood
+             *
+             * \return The position vector
+             *
+             * \sa #neighbors()
+             */
+            QVector<qreal> bestPreviousBestPosition(
+                    const Neighborhood &neighborhood)
                     const;
 
 
