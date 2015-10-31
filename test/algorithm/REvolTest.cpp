@@ -110,7 +110,7 @@ void REvolTest::testAckley()
         i.restrictions[0] = r;
 
         success |= (i.restrictions[0] + 1.0 < 1.0000000001);
-        return false; // Keep on training until the end.
+        return success;
     });
 
     QCOMPARE(1.0 + ackley(0.0, 0.0), 1.0);

@@ -70,13 +70,13 @@ void ParticleSwarmOptimizationTest::testAckley()
     bool success = false;
     auto p = pso.run(2, [&success](const QVector<qreal> &parameters) {
         qreal r = ackley(parameters[0], parameters[1]);
-        success |= (r + 1.0 < 1.1);
+        success |= (r + 1.0 < 1.0000000001);
         return std::make_tuple(r, success);
     });
 
     QCOMPARE(1.0 + ackley(0.0, 0.0), 1.0);
     QVERIFY(success);
-    QVERIFY(ackley(p[0], p[1]) + 1.0 < 1.1);
+    QVERIFY(ackley(p[0], p[1]) + 1.0 < 1.0000000001);
 }
 
 REGISTER_TESTCASE(ParticleSwarmOptimizationTest);
