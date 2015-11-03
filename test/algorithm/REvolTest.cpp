@@ -65,7 +65,7 @@ void REvolTest::testPeaks()
     i.scatter = { 8.0, 8.0 };
 
     bool success = false;
-    i = revol.run(i, [&success](Individual &i) {
+    auto result = revol.run(i, [&success](Individual &i) {
         qreal r = peaks(i.parameters[0], i.parameters[1]);
 
         // Round to see dynamic probability spread in action:
@@ -82,7 +82,7 @@ void REvolTest::testPeaks()
     });
 
     QVERIFY(success);
-    QVERIFY(i.restrictions[0] < -6.0);
+    QVERIFY(result.bestIndividual.restrictions[0] < -6.0);
 }
 
 
@@ -105,7 +105,7 @@ void REvolTest::testAckley()
     i.scatter = { 10.0, 10.0 };
 
     bool success = false;
-    i = revol.run(i, [&success](Individual &i) {
+    auto result = revol.run(i, [&success](Individual &i) {
         qreal r = ackley(i.parameters[0], i.parameters[1]);
         i.restrictions[0] = r;
 
@@ -115,7 +115,43 @@ void REvolTest::testAckley()
 
     QCOMPARE(1.0 + ackley(0.0, 0.0), 1.0);
     QVERIFY(success);
-    QVERIFY(i.restrictions[0] + 1.0 < 1.000000001);
+    QVERIFY(result.bestIndividual.restrictions[0] + 1.0 < 1.000000001);
 }
+
+
+
+void REvolTest::testCompareIndividuals()
+{
+    Individual i1, i2;
+
+    QCOMPARE(0, i1.compare(i2));
+
+    i2.timeToLive = 1;
+    QCOMPARE(0, i1.compare(i2));
+
+    i1.age();
+    QCOMPARE(-1, i1.compare(i2));
+
+    i1.timeToLive = 1;
+    i2.timeToLive = 1;
+
+    i1.restrictions << 1.0;
+    QCOMPARE(0, i1.compare(i2));
+    QVERIFY(! i1.isBetterThan(i2));
+
+    i2.restrictions << 1.0;
+    QVERIFY(!i1.isBetterThan(i2));
+    QCOMPARE(0, i2.compare(i1));
+
+    i1.restrictions[0] = 5.0;
+    QVERIFY(! i1.isBetterThan(i2));
+    QCOMPARE(1, i2.compare(i1));
+
+    i1.restrictions[0] = i2.restrictions[0];
+    i1.restrictions << 1.0 << 2.0;
+    i2.restrictions << 1.0 << 1.0;
+    QVERIFY(i2.isBetterThan(i1));
+}
+
 
 REGISTER_TESTCASE(REvolTest);

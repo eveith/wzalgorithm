@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <functional>
 
+#include <QPair>
 #include <QVector>
 
 #include <log4cxx/logger.h>
@@ -122,6 +123,17 @@ namespace Winzent {
                  * \return A deep copy
                  */
                 Individual &operator=(const Individual &other);
+            };
+
+
+            //! The result of a run of the REvol algorithm
+            struct ALGORTHMSHARED_EXPORT REvolResult
+            {
+                //! The best individual
+                Individual bestIndividual;
+
+                //! Number of iterations the algorithm took
+                std::size_t iterationsUsed;
             };
         }
 
@@ -472,7 +484,7 @@ namespace Winzent {
              *
              * \return The best individual
              */
-            detail::Individual run(
+            detail::REvolResult run(
                     const detail::Individual &origin,
                     const Evaluator &evaluator);
 

@@ -61,6 +61,10 @@ namespace Winzent {
                 return 1;
             }
 
+            if (0 == restrictions.size() || 0 == other.restrictions.size()) {
+                return 0;
+            }
+
             if (this->restrictions.at(0) < other.restrictions.at(0)) {
                 return 1;
             } else if (restrictions.at(0) > other.restrictions.at(0)) {
@@ -69,18 +73,18 @@ namespace Winzent {
                 if (timeToLive > other.timeToLive) {
                     return 1;
                 }
-            } else {
-                auto size = (
-                        restrictions.size() > other.restrictions.size()
-                        ? other.restrictions.size()
-                        : this->restrictions.size());
-                for (auto i = 1; i < size; ++i) {
-                    if (restrictions.at(i) < other.restrictions.at(i)) {
-                        return 1;
-                    } else if (other.restrictions.at(i)
-                            < this->restrictions.at(i)) {
-                        return -1;
-                    }
+            }
+
+            auto size = (
+                    restrictions.size() > other.restrictions.size()
+                    ? other.restrictions.size()
+                    : this->restrictions.size());
+            for (auto i = 1; i < size; ++i) {
+                if (restrictions.at(i) < other.restrictions.at(i)) {
+                    return 1;
+                } else if (other.restrictions.at(i)
+                        < this->restrictions.at(i)) {
+                    return -1;
                 }
             }
 
@@ -571,7 +575,7 @@ namespace Winzent {
         }
 
 
-        detail::Individual REvol::run(
+        detail::REvolResult REvol::run(
                 const detail::Individual &origin,
                 const Evaluator &evaluator)
         {
@@ -588,7 +592,7 @@ namespace Winzent {
                         logger,
                         "Training parameters have no sensible values, "
                             "won't train.");
-                return origin;
+                return { origin, 0 };
             }
 
             size_t lastSuccess = 0;
@@ -670,7 +674,7 @@ namespace Winzent {
                     "Training ended after " << epoch << " epochs; "
                         << population.front());
 
-            return population.front();
+            return { population.front(), epoch };
         }
     } // namespace ANN
 } // namespace Winzent
