@@ -148,11 +148,14 @@ namespace Winzent {
                 swarm.push_back(particle);
             }
 
+            LOG4CXX_DEBUG(logger, "Created swarm: " << swarm);
+
             return swarm;
         }
 
 
-        QVector<qreal> ParticleSwarmOptimization::run(
+        detail::ParticleSwarmOptimizationResult
+        ParticleSwarmOptimization::run(
                 const size_t &dimension,
                 const Evaluator &evaluator)
         {
@@ -162,8 +165,9 @@ namespace Winzent {
             std::sort(swarm.begin(), swarm.end());
             best = &(swarm.front());
             bool success = false;
+            size_t i;
 
-            for (size_t i = 0; i != maxIterations() && !success; ++i) {
+            for (i = 0; i != maxIterations() && !success; ++i) {
                 for (int k = 0; k != swarm.size(); ++k) {
                     auto &particle = swarm[k];
                     auto neighborIndices = neighbors(k, swarm.size());
@@ -215,7 +219,7 @@ namespace Winzent {
                 }
             }
 
-            return best->bestPosition;
+            return { *best, i };
         }
     } // namespace Algorithm
 } // namespace Winzent

@@ -4,6 +4,7 @@
 
 #include <tuple>
 #include <cstddef>
+#include <ostream>
 #include <functional>
 
 #include <QList>
@@ -12,6 +13,8 @@
 #include <boost/random.hpp>
 
 #include <log4cxx/logger.h>
+
+#include "QtContainerOutput.h"
 
 #include "algorithm_global.h"
 
@@ -72,6 +75,16 @@ namespace Winzent {
                 bool operator <(const Particle &rhs) const {
                     return bestFitness < rhs.bestFitness;
                 }
+            };
+
+
+            struct ALGORTHMSHARED_EXPORT ParticleSwarmOptimizationResult
+            {
+                //! The best particle
+                Particle bestParticle;
+
+                //! Number of iterations the algorithm ran
+                size_t iterationsUsed;
             };
         }
 
@@ -272,7 +285,7 @@ namespace Winzent {
              *
              * \sa Evaluator
              */
-            QVector<qreal> run(
+            detail::ParticleSwarmOptimizationResult run(
                     const size_t &dimension,
                     const Evaluator &evaluator);
 
@@ -309,5 +322,41 @@ namespace Winzent {
         };
     } // namespace Algorithm
 } // namespace Winzent
+
+
+namespace std {
+    ostream &operator <<(
+            ostream &os,
+            const Winzent::Algorithm::detail::Particle &particle)
+    {
+        os
+                << "Particle("
+                << "velocity = " << particle.velocity << ", "
+                << "bestFitness = " << particle.bestFitness << ", "
+                << "bestPosition = " << particle.bestPosition << ", "
+                << "currentFitness = " << particle.currentFitness << ", "
+                << "currentPosition = " << particle.currentPosition
+                << ")";
+
+        return os;
+    }
+
+    ostream &operator <<(
+            ostream &os,
+            const Winzent::Algorithm::ParticleSwarmOptimization::Swarm &swarm)
+    {
+        os << "Swarm(";
+
+        for (const auto &p: swarm) {
+            os << p;
+            if (&p != &(swarm.back())) {
+                os << ", ";
+            }
+        }
+
+        os << ")";
+        return os;
+    }
+}
 
 #endif // WINZENT_ALGORITHM_PARTICLESWARMOPTIMIZATION_H

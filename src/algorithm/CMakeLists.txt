@@ -34,7 +34,8 @@ endif()
 
 
 add_library(winzent-algorithm SHARED ${winzent-algorithm_SOURCES})
-#target_include_directories(winzent-algorithm ...)
+target_include_directories(winzent-algorithm
+    PUBLIC ${winzent-common_SOURCE_DIR})
 target_link_libraries(winzent-algorithm
     m
     Qt5::Core)

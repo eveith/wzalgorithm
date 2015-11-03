@@ -83,7 +83,9 @@ void ParticleSwarmOptimizationTest::testAckley()
 
     QCOMPARE(1.0 + ackley(0.0, 0.0), 1.0);
     QVERIFY(success);
-    QVERIFY(ackley(p[0], p[1]) + 1.0 < 1.0000000001);
+    QVERIFY(ackley(
+            p.bestParticle.bestPosition[0],
+            p.bestParticle.bestPosition[1]) + 1.0 < 1.0000000001);
 }
 
 REGISTER_TESTCASE(ParticleSwarmOptimizationTest);
