@@ -17,7 +17,7 @@ using std::cos;
 using std::sin;
 
 using Winzent::Algorithm::REvol;
-using Winzent::Algorithm::Individual;
+using Winzent::Algorithm::detail::Individual;
 
 
 qreal REvolTest::peaks(const qreal &x, const qreal &y)

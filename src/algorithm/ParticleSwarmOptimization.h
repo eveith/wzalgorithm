@@ -11,6 +11,8 @@
 
 #include <boost/random.hpp>
 
+#include <log4cxx/logger.h>
+
 #include "algorithm_global.h"
 
 
@@ -19,15 +21,54 @@ namespace Winzent {
         namespace detail {
 
 
-            //! A particle
+            /*!
+             * \brief A particle in the particle swarm
+             *
+             * The particle is the basic maintenance structure of the
+             * Particle Swarm Optimization algorithm. It carries the particles
+             * current position, the fitness at the position, its best
+             * position and fitness, as well as its velocity.
+             *
+             * The Particle structure is passed to the user-supplied
+             * evaluation function. Although this function can access the
+             * data structure as a whole, the typical modus operandi would be
+             * to use the particle's current posistion as input parameters to
+             * the objective function, and place the function's result in the
+             * #currentFitness variable.
+             */
             struct Particle
             {
+                //! The best fitness this particle ever obtained
                 qreal bestFitness;
+
+
+                /*!
+                 * \brief The fitness at the current position, i.e.,
+                 *  the result of applying the objective function to the
+                 *  current position
+                 */
                 qreal currentFitness;
+
+
+                //! The best position, i.e., the source of the #bestFitness
                 QVector<qreal> bestPosition;
+
+
+                /*!
+                 * \brief The current position, i.e., the parameters to the
+                 *  objective function
+                 */
                 QVector<qreal> currentPosition;
+
+
+                //! The particle's velocity
                 QVector<qreal> velocity;
 
+
+                /*!
+                 * \brief The smaller-than operator, applied to the particle's
+                 *  fitness.
+                 */
                 bool operator <(const Particle &rhs) const {
                     return bestFitness < rhs.bestFitness;
                 }
@@ -61,13 +102,18 @@ namespace Winzent {
              * optimize the parameters in such a way that its result is as low
              * as possible.
              *
-             * The size of the vector will be that of the dimension of the
-             * search space.
+             * \param[in] particle The particle that is currently being
+             *  evaluated
+             *
+             * \return `true` if the particle matches the user-determined
+             *  success criterion, `false` if the PSO algorithm should
+             *  continue
+             *
+             * \sa detail::Particle
              *
              * \sa #run()
              */
-            typedef std::function<
-                    std::tuple<qreal, bool>(const QVector<qreal> &)> Evaluator;
+            typedef std::function<bool(detail::Particle &)> Evaluator;
 
 
             //! The Swarm data type
@@ -202,7 +248,12 @@ namespace Winzent {
              * \param[in] dimension Dimension of the search space, i.e., the
              *  number of parameters to the evaluation function
              *
+             * \param[in] evaluator The evaluation function that initially
+             *  evaluates each particle's fitness
+             *
              * \return The new swarm
+             *
+             * \sa Evaluator
              */
             Swarm createSwarm(
                     const size_t &dimension,
@@ -218,6 +269,8 @@ namespace Winzent {
              *  the fitness function
              *
              * \return The best set of parameters found
+             *
+             * \sa Evaluator
              */
             QVector<qreal> run(
                     const size_t &dimension,
@@ -225,6 +278,10 @@ namespace Winzent {
 
 
         private:
+
+
+            //! Internal logger
+            log4cxx::LoggerPtr logger;
 
 
             //! The size of the swarm

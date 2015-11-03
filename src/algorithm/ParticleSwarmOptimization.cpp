@@ -9,6 +9,9 @@
 
 #include <boost/random.hpp>
 
+#include <log4cxx/logger.h>
+#include <log4cxx/logmanager.h>
+
 #include "ParticleSwarmOptimization.h"
 
 
@@ -21,6 +24,8 @@ namespace Winzent {
 
 
         ParticleSwarmOptimization::ParticleSwarmOptimization():
+                logger(log4cxx::LogManager::getLogger(
+                    "Winzent.Algorithm.ParticleSwarmOptimization")),
                 m_swarmSize(DEFAULT_SWARM_SIZE),
                 m_maxIterations(std::numeric_limits<size_t>::max())
         {
@@ -136,8 +141,7 @@ namespace Winzent {
                     particle.velocity.push_back(v);
                 }
 
-                auto evaluation = evaluator(particle.currentPosition);
-                particle.currentFitness = std::get<0>(evaluation);
+                evaluator(particle);
                 particle.bestFitness = particle.currentFitness;
                 particle.bestPosition = particle.currentPosition;
 
@@ -177,7 +181,7 @@ namespace Winzent {
                         qreal p = particle.bestPosition[j];
                         qreal l = bestNeighborhoodPosition[j];
                         qreal g = (isBestInNeighborhood
-                                ? x + C * ((p - x) / 3.0)
+                                ? x + C * ((p - x) / 2.0)
                                 : x + C * ((p + l - 2.0 * x) / 3.0));
                         qreal r = g + ((g-x)-g) * m_uniformDistribution(
                                 m_randomNumberGenerator);
@@ -198,8 +202,8 @@ namespace Winzent {
                         particle.currentPosition[j] = newX;
                     }
 
-                    auto evaluation = evaluator(particle.currentPosition);
-                    particle.currentFitness = std::get<0>(evaluation);
+                    success = evaluator(particle);
+
                     if (particle.currentFitness < particle.bestFitness) {
                         particle.bestFitness = particle.currentFitness;
                         particle.bestPosition = particle.currentPosition;
@@ -208,8 +212,6 @@ namespace Winzent {
                     if (particle.bestFitness < best->bestFitness) {
                         best = &particle;
                     }
-
-                    success = std::get<1>(evaluation);
                 }
             }
 

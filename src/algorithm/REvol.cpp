@@ -30,32 +30,28 @@ namespace Winzent {
     namespace Algorithm {
 
 
-        log4cxx::LoggerPtr REvol::logger =
-                log4cxx::LogManager::getLogger("Winzent.Algorithm.REvol");
-
-
-        Individual::Individual(): timeToLive(0)
+        detail::Individual::Individual(): timeToLive(0)
         {
         }
 
 
-        Individual::Individual(const Individual &other):
-            parameters(other.parameters),
-            scatter(other.scatter),
-            timeToLive(other.timeToLive),
-            restrictions(other.restrictions)
+        detail::Individual::Individual(const detail::Individual &other):
+                parameters(other.parameters),
+                scatter(other.scatter),
+                timeToLive(other.timeToLive),
+                restrictions(other.restrictions)
         {
         }
 
 
-        Individual &Individual::age()
+        detail::Individual &detail::Individual::age()
         {
             timeToLive -= 1;
             return *this;
         }
 
 
-        int Individual::compare(const Individual &other) const
+        int detail::Individual::compare(const detail::Individual &other) const
         {
             if (this->timeToLive < 0 && other.timeToLive >= 0) {
                 return -1;
@@ -92,21 +88,24 @@ namespace Winzent {
         }
 
 
-        bool Individual::isBetterThan(const Individual &other) const
+        bool detail::Individual::isBetterThan(
+                const detail::Individual &other)
+                const
         {
             return (1 == compare(other));
         }
 
 
-        bool Individual::isIndividual1Better(
-                Individual const& i1,
-                Individual const& i2)
+        bool detail::Individual::isIndividual1Better(
+                detail::Individual const& i1,
+                detail::Individual const& i2)
         {
             return i1.isBetterThan(i2);
         }
 
 
-        bool Individual::operator ==(const Individual &other) const
+        bool detail::Individual::operator ==(const detail::Individual &other)
+                const
         {
 #ifdef      QT_DEBUG
                 bool ok = true;
@@ -124,7 +123,8 @@ namespace Winzent {
         }
 
 
-        Individual &Individual::operator =(const Individual &other)
+        detail::Individual &detail::Individual::operator =(
+                const detail::Individual &other)
         {
             if (this == &other) {
                 return *this;
@@ -153,16 +153,15 @@ namespace Winzent {
         }
 
 
-        void REvol::sortPopulation(
-                Population& population)
+        void REvol::sortPopulation(Population &population)
         {
-            population.sort(&Individual::isIndividual1Better);
+            population.sort(&detail::Individual::isIndividual1Better);
         }
 
 
         void REvol::agePopulation(Population &population)
         {
-            for (Individual &i: population) {
+            for (auto &i: population) {
                 i.age();
             }
         }
@@ -175,6 +174,8 @@ namespace Winzent {
 
 
         REvol::REvol():
+                logger(log4cxx::LogManager::getLogger(
+                    "Winzent.Algorithm.REvol")),
                 m_maxNoSuccessEpochs(0),
                 m_populationSize(0),
                 m_eliteSize(0),
@@ -199,7 +200,7 @@ namespace Winzent {
         }
 
 
-        REvol &REvol::maxEpochs(const size_t &epochs)
+        REvol &REvol::maxEpochs(const std::size_t &epochs)
         {
             m_maxEpochs = epochs;
             if (0 == maxNoSuccessEpochs()) {
@@ -214,7 +215,7 @@ namespace Winzent {
         }
 
 
-        REvol &REvol::maxNoSuccessEpochs(const size_t &epochs)
+        REvol &REvol::maxNoSuccessEpochs(const std::size_t &epochs)
         {
             m_maxNoSuccessEpochs = epochs;
             return *this;
@@ -227,12 +228,16 @@ namespace Winzent {
         }
 
 
-        REvol &REvol::populationSize(const size_t &size)
+        REvol &REvol::populationSize(const std::size_t &size)
         {
             m_populationSize = size;
 
             if (0 == eliteSize()) {
                 eliteSize(std::ceil(size * 0.1));
+            }
+
+            if (0 == startTTL()) {
+                startTTL(size * 3);
             }
 
             return *this;
@@ -245,7 +250,7 @@ namespace Winzent {
         }
 
 
-        REvol &REvol::eliteSize(const size_t &size)
+        REvol &REvol::eliteSize(const std::size_t &size)
         {
             m_eliteSize = size;
             return *this;
@@ -317,13 +322,13 @@ namespace Winzent {
         }
 
 
-        int REvol::startTTL() const
+        std::ptrdiff_t REvol::startTTL() const
         {
             return m_startTTL;
         }
 
 
-        REvol &REvol::startTTL(const int &ttl)
+        REvol &REvol::startTTL(const std::ptrdiff_t &ttl)
         {
             m_startTTL = ttl;
             return *this;
@@ -336,7 +341,7 @@ namespace Winzent {
         }
 
 
-        REvol &REvol::measurementEpochs(const size_t &epochs)
+        REvol &REvol::measurementEpochs(const std::size_t &epochs)
         {
             m_measurementEpochs = epochs;
             return *this;
@@ -416,11 +421,11 @@ namespace Winzent {
 
 
         REvol::Population REvol::generateInitialPopulation(
-                const Individual &origin)
+                const detail::Individual &origin)
         {
             Q_ASSERT(origin.parameters.size() == origin.scatter.size());
 
-            Individual *baseIndividual = new Individual(origin);
+            auto *baseIndividual = new detail::Individual(origin);
             baseIndividual->timeToLive = startTTL();
             baseIndividual->restrictions.push_front(
                     std::numeric_limits<qreal>::infinity());
@@ -429,8 +434,8 @@ namespace Winzent {
             population.push_back(baseIndividual);
             auto numParameters = baseIndividual->parameters.size();
 
-            for (size_t i = 1; i < populationSize() + 1; ++i) {
-                Individual *individual = new Individual();
+            for (std::size_t i = 1; i < populationSize() + 1; ++i) {
+                auto *individual = new detail::Individual();
                 individual->timeToLive = startTTL();
                 individual->parameters.reserve(numParameters);
                 individual->scatter.reserve(numParameters);
@@ -455,27 +460,28 @@ namespace Winzent {
         }
 
 
-        QPair<Individual &, Individual &> REvol::modifyIndividual(
-                Individual &individual,
+        QPair<detail::Individual &, detail::Individual &>
+        REvol::modifyIndividual(
+                detail::Individual &individual,
                 Population &population)
         {
-            Individual &eliteIndividual = population.at(abs(
+            auto &eliteIndividual = population.at(abs(
                     (m_rnDistribution(m_randomNumberGenerator) % eliteSize())
                         - (m_rnDistribution(m_randomNumberGenerator)
                             % eliteSize())));
-            Individual &otherIndividual = population.at(
+            auto &otherIndividual = population.at(
                     m_rnDistribution(m_randomNumberGenerator)
                         % population.size());
 
             if (otherIndividual.isBetterThan(eliteIndividual)) {
-                Individual &tmp = eliteIndividual;
+                auto &tmp = eliteIndividual;
                 eliteIndividual = otherIndividual;
                 otherIndividual = tmp;
             }
 
             qreal xlp = 0.0;
             qreal successRate = m_success / m_targetSuccess - 1.0;
-            int gradientSwitch = m_rnDistribution(m_randomNumberGenerator) % 3;
+            int gradientSwitch = m_rnDistribution(m_randomNumberGenerator)%3;
             qreal expvar = exp(frandom() - frandom());
 
             if (2 == gradientSwitch) {
@@ -559,16 +565,18 @@ namespace Winzent {
 
             LOG4CXX_DEBUG(logger, "Created " << individual);
 
-            return QPair<Individual &, Individual &>(
+            return QPair<detail::Individual &, detail::Individual &>(
                     eliteIndividual,
                     otherIndividual);
         }
 
 
-        Individual REvol::run(const Individual &origin, Evaluator evaluator)
+        detail::Individual REvol::run(
+                const detail::Individual &origin,
+                const Evaluator &evaluator)
         {
             if (0 == startTTL()) {
-                startTTL(std::ceil(maxEpochs() * 0.1));
+                startTTL(populationSize() * 3);
             }
 
             if (0 == measurementEpochs()) {
@@ -612,10 +620,9 @@ namespace Winzent {
 
                 // Check for addition of a new individual:
 
-                Individual &newIndividual = population.back();
-                Individual &bestIndividual = population.front();
-                Individual &worstIndividual = population.at(
-                        population.size() - 2);
+                auto &newIndividual = population.back();
+                auto &bestIndividual = population.front();
+                auto &worstIndividual = population.at(population.size() - 2);
 
                 // Check for global or, at least, local improvement:
 
@@ -635,7 +642,6 @@ namespace Winzent {
 
                 if (newIndividual.isBetterThan(bestIndividual)) {
                     lastSuccess = epoch;
-                    //newIndividual.timeToLive = 0;
                     newIndividual.timeToLive = epoch;
                 }
 
@@ -673,7 +679,7 @@ namespace Winzent {
 namespace std {
     ostream &operator<<(
             ostream &os,
-            const Winzent::Algorithm::Individual &individual)
+            const Winzent::Algorithm::detail::Individual &individual)
     {
         os << "Individual(";
 
@@ -728,10 +734,10 @@ namespace std {
 
     ostream &operator<<(
             ostream &os,
-            const boost::ptr_vector<Winzent::Algorithm::Individual> &v)
+            const Winzent::Algorithm::REvol::Population &v)
     {
         os << "(";
-        for (const Winzent::Algorithm::Individual &i: v) {
+        for (const auto &i: v) {
             os << i;
             if (&i != &(v.back())) {
                 os << ", ";

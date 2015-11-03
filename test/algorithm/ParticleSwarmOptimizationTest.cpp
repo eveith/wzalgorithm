@@ -16,6 +16,7 @@ using std::exp;
 using std::cos;
 using std::sin;
 
+using Winzent::Algorithm::detail::Particle;
 using Winzent::Algorithm::ParticleSwarmOptimization;
 
 
@@ -52,10 +53,13 @@ void ParticleSwarmOptimizationTest::testPeaks()
     pso.lowerBoundary(-10.0).upperBoundary(10.0).maxIterations(5000);
 
     bool success = false;
-    pso.run(2, [&success](const QVector<qreal> &parameters) {
-        qreal r = peaks(parameters[0], parameters[1]);
+    pso.run(2, [&success](Particle &particle) {
+        qreal r = peaks(
+                particle.currentPosition[0],
+                particle.currentPosition[1]);
+        particle.currentFitness = r;
         success |= (r <= -6.0);
-        return std::make_tuple(r, success);
+        return success;
     });
 
     QVERIFY(success);
@@ -68,10 +72,13 @@ void ParticleSwarmOptimizationTest::testAckley()
     pso.lowerBoundary(-32.0).upperBoundary(32.0).maxIterations(50000);
 
     bool success = false;
-    auto p = pso.run(2, [&success](const QVector<qreal> &parameters) {
-        qreal r = ackley(parameters[0], parameters[1]);
+    auto p = pso.run(2, [&success](Particle &particle) {
+        qreal r = ackley(
+                particle.currentPosition[0],
+                particle.currentPosition[1]);
         success |= (r + 1.0 < 1.0000000001);
-        return std::make_tuple(r, success);
+        particle.currentFitness = r;
+        return success;
     });
 
     QCOMPARE(1.0 + ackley(0.0, 0.0), 1.0);

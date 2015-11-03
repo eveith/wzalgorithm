@@ -2,6 +2,7 @@
 #define WINZENT_ALGORITHM_REVOL_H_
 
 
+#include <cstddef>
 #include <functional>
 
 #include <QVector>
@@ -16,111 +17,113 @@
 
 namespace Winzent {
     namespace Algorithm {
-
-
-        /*!
-         * \brief The Individual class represents an individual during the
-         *  training phase of the evolutionary algorithm
-         */
-        class ALGORTHMSHARED_EXPORT Individual
-        {
-        public:
-
-
-            //! The parameters vector of this individual
-            QVector<qreal> parameters;
-
-
-            //! The scatter vector for the parameters
-            QVector<qreal> scatter;
-
-
-            //! The individual's time to live: How long may it exist?
-            ptrdiff_t timeToLive;
-
-
-            //! Restrictions specifing the fitness of the individual
-            QVector<qreal> restrictions;
+        namespace detail {
 
 
             /*!
-             * \brief Constructs an empty Individual
-             *
-             * Initializes the Individual's TTL to 0.
+             * \brief The Individual class represents an individual during the
+             *  training phase of the evolutionary algorithm
              */
-            Individual();
+            struct ALGORTHMSHARED_EXPORT Individual
+            {
+                //! The parameters vector of this individual
+                QVector<qreal> parameters;
 
 
-            /*!
-             * \brief Copy constructor
-             *
-             * \param[in] The other individual to copy
-             */
-            Individual(const Individual &other);
+                //! The scatter vector for the parameters
+                QVector<qreal> scatter;
 
 
-            /*!
-             * \brief Ages the individuum
-             *
-             * \return `*this`
-             */
-            Individual &age();
+                //! The individual's time to live: How long may it exist?
+                std::ptrdiff_t timeToLive;
 
 
-            /*!
-             * \brief Compares one individual to another.
-             *
-             * \param other The other individual
-             *
-             * \return -1 if the other individual is better than this one,
-             *  0 if they are equal, or 1 if this one is better than the other
-             *  individual.
-             */
-            int compare(const Individual &other) const;
+                //! Restrictions specifing the fitness of the individual
+                QVector<qreal> restrictions;
 
 
-            /*!
-             * \brief Checks whether this object is better than another one.
-             *
-             * \param[in] other The object to check againts
-             *
-             * \return true if the object is better, false otherwise.
-             */
-            bool isBetterThan(const Individual &other) const;
+                /*!
+                 * \brief Constructs an empty Individual
+                 *
+                 * Initializes the Individual's TTL to 0.
+                 */
+                Individual();
 
 
-            /*!
-             * \brief Checks whether an individual is better than the other
-             *
-             * \param[in] i1 The first individual
-             * \param[in] i2 The second individual
-             *
-             * \return True, iff `i1` is better than `i2`.
-             */
-            static bool isIndividual1Better(
-                    Individual const& i1,
-                    Individual const& i2);
+                /*!
+                 * \brief Copy constructor
+                 *
+                 * \param[in] The other individual to copy
+                 */
+                Individual(const Individual &other);
 
 
-            /*!
-             * \brief Compares two Individuals for equality in all vectors.
-             *
-             * \param[in] other The Individual to compare the current one to.
-             *
-             * \return true iff equal, false otherwise.
-             */
-            bool operator==(const Individual &other) const;
+                /*!
+                 * \brief Ages the individuum, i.e., reduces its time to live.
+                 *
+                 * \return `*this`
+                 */
+                Individual &age();
 
 
-            /*!
-             * \brief Deep copy operator
-             *
-             * \param[in] other The other Individual to copy
-             *
-             * \return A deep copy
-             */
-            Individual &operator=(const Individual &other);
-        };
+                /*!
+                 * \brief Compares one individual to another.
+                 *
+                 * \param other The other individual
+                 *
+                 * \return -1 if the other individual is better than this one,
+                 *  0 if they are equal, or 1 if this one is better than
+                 *  the other individual.
+                 */
+                int compare(const Individual &other) const;
+
+
+                /*!
+                 * \brief Checks whether this object is better than
+                 *  another one
+                 *
+                 * \param[in] other The object to check againts
+                 *
+                 * \return true if the object is better, false otherwise.
+                 */
+                bool isBetterThan(const Individual &other) const;
+
+
+                /*!
+                 * \brief Checks whether an individual is better than another
+                 *
+                 * \param[in] i1 The first individual
+                 *
+                 * \param[in] i2 The second individual
+                 *
+                 * \return True, iff `i1` is better than `i2`.
+                 */
+                static bool isIndividual1Better(
+                        Individual const& i1,
+                        Individual const& i2);
+
+
+                /*!
+                 * \brief Compares two Individuals for equality in all vectors.
+                 *
+                 * \param[in] other The Individual to compare the current
+                 *  one to
+                 *
+                 * \return `true` iff equal, `false` otherwise.
+                 */
+                bool operator==(const Individual &other) const;
+
+
+                /*!
+                 * \brief Deep copy operator
+                 *
+                 * \param[in] other The other Individual to copy
+                 *
+                 * \return A deep copy
+                 */
+                Individual &operator=(const Individual &other);
+            };
+        }
 
 
         /*!
@@ -135,7 +138,7 @@ namespace Winzent {
 
 
             //! Auto-deleting vector for the population
-            typedef boost::ptr_vector<Individual> Population;
+            typedef boost::ptr_vector<detail::Individual> Population;
 
 
             /*!
@@ -150,8 +153,13 @@ namespace Winzent {
              * this function returns `false`, the algorithm continues. Once
              * the function returns `true`, REvol terminates, since the
              * user-supplied restrictions have all been fulfilled.
+             *
+             * \param[inout] individual The individual that is being evaluated
+             *
+             * \return `true` if the individual's evaluation satisfies the
+             *  user-determined success criterion, `false` otherwise
              */
-            typedef std::function<bool(Individual &)> Evaluator;
+            typedef std::function<bool(detail::Individual &)> Evaluator;
 
 
             //! A time-discrete LTI system of first order
@@ -175,11 +183,7 @@ namespace Winzent {
             static void agePopulation(Population &population);
 
 
-            /*!
-             * \brief Creates a new instance of the
-             *  evolutionary training algorithm for
-             *  training a particular network.
-             */
+            //! Creates a new, un-initialized instance of this algorithm
             REvol();
 
 
@@ -197,7 +201,7 @@ namespace Winzent {
              *
              * \return The maximum number of epochs
              */
-            size_t maxEpochs() const;
+            std::size_t maxEpochs() const;
 
 
             /*!
@@ -208,7 +212,7 @@ namespace Winzent {
              *
              * \return `*this`
              */
-            REvol &maxEpochs(const size_t &epochs);
+            REvol &maxEpochs(const std::size_t &epochs);
 
 
             /*!
@@ -217,7 +221,7 @@ namespace Winzent {
              *
              * \return The number of epochs
              */
-            size_t maxNoSuccessEpochs() const;
+            std::size_t maxNoSuccessEpochs() const;
 
 
             /*!
@@ -228,7 +232,7 @@ namespace Winzent {
              *
              * \return `*this`
              */
-            REvol &maxNoSuccessEpochs(const size_t &epochs);
+            REvol &maxNoSuccessEpochs(const std::size_t &epochs);
 
 
             /*!
@@ -236,7 +240,7 @@ namespace Winzent {
              *
              * \return The population's size
              */
-            size_t populationSize() const;
+            std::size_t populationSize() const;
 
 
             /*!
@@ -246,7 +250,7 @@ namespace Winzent {
              *
              * \return `*this`
              */
-            REvol &populationSize(const size_t &size);
+            REvol &populationSize(const std::size_t &size);
 
 
             /*!
@@ -254,7 +258,7 @@ namespace Winzent {
              *
              * \return The number of elite individuals within the population
              */
-            size_t eliteSize() const;
+            std::size_t eliteSize() const;
 
 
             /*!
@@ -264,7 +268,7 @@ namespace Winzent {
              *
              * \return `*this`
              */
-            REvol &eliteSize(const size_t &size);
+            REvol &eliteSize(const std::size_t &size);
 
 
             /*!
@@ -388,7 +392,7 @@ namespace Winzent {
              *
              * \return The initial Time-To-Live
              */
-            int startTTL() const;
+            std::ptrdiff_t startTTL() const;
 
 
             /*!
@@ -398,7 +402,7 @@ namespace Winzent {
              *
              * \return `*this`
              */
-            REvol &startTTL(const int &ttl);
+            REvol &startTTL(const std::ptrdiff_t &ttl);
 
 
             /*!
@@ -428,7 +432,8 @@ namespace Winzent {
              *
              * \return The population, including the elite
              */
-            Population generateInitialPopulation(const Individual &origin);
+            Population generateInitialPopulation(
+                    const detail::Individual &origin);
 
 
             /*!
@@ -452,9 +457,10 @@ namespace Winzent {
              *  individual. The frist reference denotes the better, the second
              *  the other individual that were chosen.
              */
-            QPair<Individual &, Individual &> modifyIndividual(
-                    Individual &individual,
-                    Population &population);
+            QPair<detail::Individual &, detail::Individual &>
+                    modifyIndividual(
+                        detail::Individual &individual,
+                        Population &population);
 
 
             /*!
@@ -466,33 +472,35 @@ namespace Winzent {
              *
              * \return The best individual
              */
-            Individual run(const Individual &origin, Evaluator evaluator);
+            detail::Individual run(
+                    const detail::Individual &origin,
+                    const Evaluator &evaluator);
 
 
         private:
 
 
             //! Our logger
-            static log4cxx::LoggerPtr logger;
+            log4cxx::LoggerPtr logger;
 
 
             //! The maximum number of iterations this alorithm runs
-            size_t m_maxEpochs;
+            std::size_t m_maxEpochs;
 
 
             /*!
              * \brief Maximum number of epochs that may pass without a global
              *  improvement
              */
-            size_t m_maxNoSuccessEpochs;
+            std::size_t m_maxNoSuccessEpochs;
 
 
             //! \brief Overall size of the population
-            size_t m_populationSize;
+            std::size_t m_populationSize;
 
 
             //! \brief Size of the elite, contained in the population
-            size_t m_eliteSize;
+            std::size_t m_eliteSize;
 
 
             //! \brief Weight of implicit gradient information.
@@ -525,13 +533,13 @@ namespace Winzent {
             /*!
              * \brief Initial Time-To-Live for new individuals
              */
-            int m_startTTL;
+            std::ptrdiff_t m_startTTL;
 
 
             /*!
              * \brief Number of epochs to apply to the dc1 method
              */
-            size_t m_measurementEpochs;
+            std::size_t m_measurementEpochs;
 
 
             /*!
@@ -602,10 +610,10 @@ namespace Winzent {
 namespace std {
     ostream &operator<<(
             ostream &os,
-            const Winzent::Algorithm::Individual &individual);
+            const Winzent::Algorithm::detail::Individual &individual);
     ostream &operator<<(
             ostream &os,
-            const boost::ptr_vector<Winzent::Algorithm::Individual> &v);
+            const Winzent::Algorithm::REvol::Population &v);
     ostream &operator<<(
             ostream &os,
             const Winzent::Algorithm::REvol &algorithm);
