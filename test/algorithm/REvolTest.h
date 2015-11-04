@@ -19,6 +19,7 @@ public:
 private slots:
     void testPeaks();
     void testAckley();
+    void testSortPopulation();
     void testCompareIndividuals();
 };
 

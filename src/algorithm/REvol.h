@@ -105,7 +105,8 @@ namespace Winzent {
 
 
                 /*!
-                 * \brief Compares two Individuals for equality in all vectors.
+                 * \brief Compares two Individuals for equality in
+                 *  all vectors.
                  *
                  * \param[in] other The Individual to compare the current
                  *  one to
@@ -123,6 +124,18 @@ namespace Winzent {
                  * \return A deep copy
                  */
                 Individual &operator=(const Individual &other);
+
+
+                /*!
+                 * \brief Compare two Individuals, applying the semantics of
+                 *  #isBetterThan
+                 *
+                 * \param[in] other The other Individual to compare against
+                 *
+                 * \return `true` if this Individual is better than the other
+                 *  one, `false` otherwise
+                 */
+                bool operator<(const Individual &other) const;
             };
 
 
@@ -176,15 +189,6 @@ namespace Winzent {
 
             //! A time-discrete LTI system of first order
             static qreal pt1(const qreal &y, const qreal &u, const qreal &t);
-
-
-            /*!
-             * \brief Sorts the population so that the best individual comes
-             *  first.
-             *
-             * \param[inout] population The population.
-             */
-            static void sortPopulation(Population &population);
 
 
             /*!
@@ -578,16 +582,6 @@ namespace Winzent {
              *  random numbers
              */
             boost::random::uniform_01<qreal> m_uniformDistribution;
-
-
-            //! A normal distribution with mean 0.
-            boost::random::normal_distribution<qreal>
-                    m_normalDistributionZero;
-
-
-            //! A normal distribution with mean -2.
-            boost::random::normal_distribution<qreal>
-                    m_normalDistributionMinusTwo;
 
 
             //! The uniform integer distribution used to select individuals

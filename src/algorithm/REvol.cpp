@@ -143,6 +143,13 @@ namespace Winzent {
         }
 
 
+        bool detail::Individual::operator <(const detail::Individual &other)
+                const
+        {
+            return this->isBetterThan(other);
+        }
+
+
         qreal REvol::pt1(const qreal &y, const qreal &u, const qreal &t)
         {
             qreal r = 0.0;
@@ -154,12 +161,6 @@ namespace Winzent {
             }
 
             return r;
-        }
-
-
-        void REvol::sortPopulation(Population &population)
-        {
-            population.sort(&detail::Individual::isIndividual1Better);
         }
 
 
@@ -191,9 +192,7 @@ namespace Winzent {
                 m_startTTL(0),
                 m_measurementEpochs(5000),
                 m_success(0.25),
-                m_targetSuccess(0.25),
-                m_normalDistributionZero(0.0, 0.5),
-                m_normalDistributionMinusTwo(-2.0, 0.5)
+                m_targetSuccess(0.25)
         {
         }
 
@@ -452,8 +451,7 @@ namespace Winzent {
                     individual->scatter.push_back(r);
                     individual->parameters.push_back(
                             baseIndividual->parameters.at(j)
-                                + r * m_normalDistributionZero(
-                                    m_randomNumberGenerator));
+                                +r*(frandom()-frandom()+frandom()-frandom()));
                 }
 
                 population.push_back(individual);
@@ -478,9 +476,7 @@ namespace Winzent {
                         % population.size());
 
             if (otherIndividual.isBetterThan(eliteIndividual)) {
-                auto &tmp = eliteIndividual;
-                eliteIndividual = otherIndividual;
-                otherIndividual = tmp;
+                std::swap(eliteIndividual, otherIndividual);
             }
 
             qreal xlp = 0.0;
@@ -489,7 +485,10 @@ namespace Winzent {
             qreal expvar = exp(frandom() - frandom());
 
             if (2 == gradientSwitch) {
-                xlp = m_normalDistributionMinusTwo(m_randomNumberGenerator)
+                xlp = (frandom() + frandom() + frandom() + frandom()
+                            + frandom() + frandom() + frandom() + frandom()
+                            + frandom() + frandom() - frandom() - frandom()
+                            - frandom() - frandom() - frandom() - frandom())
                     * gradientWeight();
 
                 if (xlp > 0.0) {
@@ -534,9 +533,9 @@ namespace Winzent {
 
                 individual.scatter[i] = dx;
 
-                dx = dx * (frandom() + frandom()
-                        + frandom() + frandom() + frandom() - frandom()
-                        - frandom() - frandom() - frandom() - frandom());
+                dx *= (frandom() + frandom() + frandom() + frandom()
+                        + frandom() - frandom() - frandom() - frandom()
+                        - frandom() - frandom());
 
                 if (0 == gradientSwitch) { // Everything from the elite, p=2/3
                     if (m_rnDistribution(m_randomNumberGenerator) % 3 < 2) {
@@ -619,7 +618,7 @@ namespace Winzent {
                         successful |= evaluator(individual);
                     }
 
-                    sortPopulation(population);
+                    population.sort();
                 }
 
                 // Check for addition of a new individual:
@@ -651,7 +650,7 @@ namespace Winzent {
 
                 // Sort the list and do a bit of caretaking:
 
-                sortPopulation(population);
+                std::sort(population.begin(), population.end());
                 agePopulation(population);
                 m_success = pt1(m_success, 0.0, measurementEpochs());
 
