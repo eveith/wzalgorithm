@@ -463,17 +463,18 @@ namespace Winzent {
 
 
         QPair<detail::Individual &, detail::Individual &>
-        REvol::modifyIndividual(
-                detail::Individual &individual,
-                Population &population)
+        REvol::modifyWorstIndividual(Population &population)
         {
+            Q_ASSERT(population.size() >= 3);
+
+            auto &individual = population.back();
             auto &eliteIndividual = population.at(abs(
                     (m_rnDistribution(m_randomNumberGenerator) % eliteSize())
                         - (m_rnDistribution(m_randomNumberGenerator)
                             % eliteSize())));
             auto &otherIndividual = population.at(
                     m_rnDistribution(m_randomNumberGenerator)
-                        % population.size());
+                        % (population.size()-1));
 
             if (otherIndividual.isBetterThan(eliteIndividual)) {
                 std::swap(eliteIndividual, otherIndividual);
@@ -602,17 +603,12 @@ namespace Winzent {
             do {
                 // Modify the worst individual:
 
-                if (0 != epoch) {
-                    auto individual = population.pop_back();
-                    auto srcIndividuals = modifyIndividual(
-                            *individual,
-                            population);
+                if (0 < epoch) {
+                    auto srcIndividuals = modifyWorstIndividual(population);
 
-                    successful |= evaluator(*individual);
+                    successful |= evaluator(population.back());
                     successful |= evaluator(srcIndividuals.first);
                     successful |= evaluator(srcIndividuals.second);
-
-                    population.push_back(individual.release());
                 } else {
                     for (auto &individual: population) {
                         successful |= evaluator(individual);
@@ -650,7 +646,7 @@ namespace Winzent {
 
                 // Sort the list and do a bit of caretaking:
 
-                std::sort(population.begin(), population.end());
+                population.sort();
                 agePopulation(population);
                 m_success = pt1(m_success, 0.0, measurementEpochs());
 

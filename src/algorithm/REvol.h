@@ -462,11 +462,7 @@ namespace Winzent {
              * In the process, it also modifies existing objects in order to
              * re-train them.
              *
-             * \param[in] individual The individual that is to be modified
-             *  according to the rest of the population; may not already be
-             *  part of it.
-             *
-             * \param population The current population of networks.
+             * \param population The current population; must be sorted
              *
              * \return A pair containing the two individuals out of the
              *  population that were used to modifiy the given target
@@ -474,9 +470,7 @@ namespace Winzent {
              *  the other individual that were chosen.
              */
             QPair<detail::Individual &, detail::Individual &>
-                    modifyIndividual(
-                        detail::Individual &individual,
-                        Population &population);
+                    modifyWorstIndividual(Population &population);
 
 
             /*!
