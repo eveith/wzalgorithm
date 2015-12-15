@@ -41,6 +41,10 @@ namespace Winzent {
              */
             struct Particle
             {
+                //! The vector type used here.
+                typedef QVector<qreal> Vector;
+
+
                 //! The best fitness this particle ever obtained
                 qreal bestFitness;
 
@@ -54,18 +58,18 @@ namespace Winzent {
 
 
                 //! The best position, i.e., the source of the #bestFitness
-                QVector<qreal> bestPosition;
+                Vector bestPosition;
 
 
                 /*!
                  * \brief The current position, i.e., the parameters to the
                  *  objective function
                  */
-                QVector<qreal> currentPosition;
+                Vector currentPosition;
 
 
                 //! The particle's velocity
-                QVector<qreal> velocity;
+                Vector velocity;
 
 
                 /*!

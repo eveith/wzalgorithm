@@ -176,8 +176,8 @@ namespace Winzent {
                             &(swarm[std::get<1>(neighborIndices)]),
                             &(swarm[std::get<2>(neighborIndices)]) });
 
-                    for (size_t j = 0; j != particle.currentPosition.size();
-                            ++j) {
+                    for (detail::Particle::Vector::size_type j = 0;
+                            j != particle.currentPosition.size(); ++j) {
                         bool isBestInNeighborhood = (particle.bestPosition
                                 == bestNeighborhoodPosition);
                         qreal v = particle.velocity[j];
