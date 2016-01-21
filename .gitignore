@@ -58,3 +58,4 @@ log
 *.log
 qrc_*.cpp
 winzent-*.tar*
+.idea
