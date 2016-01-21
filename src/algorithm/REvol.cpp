@@ -599,6 +599,7 @@ namespace Winzent {
             size_t epoch       = 0;
             bool successful    = false;
             Population population = generateInitialPopulation(origin);
+            detail::Individual &bestIndividual = population.front();
 
             do {
                 // Modify the worst individual:
@@ -607,20 +608,38 @@ namespace Winzent {
                     auto srcIndividuals = modifyWorstIndividual(population);
 
                     successful |= evaluator(population.back());
+                    if (successful) {
+                        bestIndividual = population.back();
+                        break;
+                    }
+
                     successful |= evaluator(srcIndividuals.first);
+                    if (successful) {
+                        bestIndividual = srcIndividuals.first;
+                        break;
+                    }
+
                     successful |= evaluator(srcIndividuals.second);
+                    if (successful) {
+                        bestIndividual = srcIndividuals.second;
+                        break;
+                    }
                 } else {
                     for (auto &individual: population) {
                         successful |= evaluator(individual);
+                        if (successful) {
+                            bestIndividual = individual;
+                            break;
+                        }
                     }
 
-                    population.sort();
+                    std::sort(population.begin(), population.end());
                 }
 
                 // Check for addition of a new individual:
 
+                bestIndividual = population.front();
                 auto &newIndividual = population.back();
-                auto &bestIndividual = population.front();
                 auto &worstIndividual = population.at(population.size() - 2);
 
                 // Check for global or, at least, local improvement:
@@ -646,16 +665,22 @@ namespace Winzent {
 
                 // Sort the list and do a bit of caretaking:
 
-                population.sort();
+                std::sort(population.begin(), population.end());
+                Q_ASSERT(detail::Individual::isIndividual1Better(
+                        population.front(),
+                        population.back()));
                 agePopulation(population);
                 m_success = pt1(m_success, 0.0, measurementEpochs());
 
                 LOG4CXX_DEBUG(
                         logger,
                         "Iteration(epoch = " << epoch
+                            << ", maxEpochs = " << maxEpochs()
                             << ", success = " << m_success
                             << ", targetSuccess = " << m_targetSuccess
                             << ", lastSuccess = " << lastSuccess
+                            << ", maxNoSuccessEpochs = "
+                                << maxNoSuccessEpochs()
                             << ", population = " << population
                             << ")");
 
@@ -666,10 +691,13 @@ namespace Winzent {
 
             LOG4CXX_DEBUG(
                     logger,
-                    "Training ended after " << epoch << " epochs; "
-                        << population.front());
+                    "Training ended after "
+                        << epoch
+                        << " epochs; "
+                        << "winner: "
+                        << bestIndividual);
 
-            return { population.front(), epoch };
+            return { bestIndividual, epoch };
         }
     } // namespace ANN
 } // namespace Winzent
