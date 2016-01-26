@@ -192,7 +192,8 @@ namespace Winzent {
                 m_startTTL(0),
                 m_measurementEpochs(5000),
                 m_success(0.25),
-                m_targetSuccess(0.25)
+                m_targetSuccess(0.25),
+                m_randomNumberGenerator(0xCAFEu)
         {
         }
 

@@ -27,7 +27,8 @@ namespace Winzent {
                 logger(log4cxx::LogManager::getLogger(
                     "Winzent.Algorithm.ParticleSwarmOptimization")),
                 m_swarmSize(DEFAULT_SWARM_SIZE),
-                m_maxIterations(std::numeric_limits<size_t>::max())
+                m_maxIterations(std::numeric_limits<size_t>::max()),
+                m_randomNumberGenerator(0xBEEFu)
         {
         }
 
@@ -167,7 +168,7 @@ namespace Winzent {
             bool success = false;
             size_t i;
 
-            for (i = 0; i != maxIterations() && !success; ++i) {
+            for (i = 0; i < maxIterations() && !success; ++i) {
                 for (int k = 0; k != swarm.size(); ++k) {
                     auto &particle = swarm[k];
                     auto neighborIndices = neighbors(k, swarm.size());
