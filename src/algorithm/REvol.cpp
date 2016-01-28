@@ -181,7 +181,7 @@ namespace Winzent {
         REvol::REvol():
                 logger(log4cxx::LogManager::getLogger(
                     "Winzent.Algorithm.REvol")),
-                m_maxNoSuccessEpochs(0),
+                m_maxNoSuccessEpochs(std::numeric_limits<size_t>::max()),
                 m_populationSize(0),
                 m_eliteSize(0),
                 m_gradientWeight(1.0),
@@ -207,9 +207,6 @@ namespace Winzent {
         REvol &REvol::maxEpochs(const std::size_t &epochs)
         {
             m_maxEpochs = epochs;
-            if (0 == maxNoSuccessEpochs()) {
-                maxNoSuccessEpochs(epochs);
-            }
             return *this;
         }
 
