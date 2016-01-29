@@ -52,13 +52,13 @@ void REvolTest::testPeaks()
     revol
             .ebmax(1.0)
             .gradientWeight(1.8)
-            .populationSize(100)
-            .eliteSize(10)
+            .populationSize(30)
+            .eliteSize(3)
             .successWeight(1.0)
-            .measurementEpochs(50)
-            .startTTL(100)
-            .maxEpochs(500)
-            .maxNoSuccessEpochs(100);
+            .measurementEpochs(500)
+            .startTTL(300)
+            .maxEpochs(5000)
+            .maxNoSuccessEpochs(4000);
 
     Individual i;
     i.parameters = { 0.0, 0.0 };
