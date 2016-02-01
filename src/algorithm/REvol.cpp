@@ -575,7 +575,7 @@ namespace Winzent {
 
         detail::REvolResult REvol::run(
                 const detail::Individual &origin,
-                const Evaluator &evaluator)
+                const Evaluator &succeeds)
         {
             if (0 == startTTL()) {
                 startTTL(populationSize() * 3);
@@ -595,7 +595,6 @@ namespace Winzent {
 
             size_t lastSuccess = 0;
             size_t epoch       = 0;
-            bool successful    = false;
             Population population = generateInitialPopulation(origin);
             detail::Individual &bestIndividual = population.front();
 
@@ -605,27 +604,18 @@ namespace Winzent {
                 if (0 < epoch) {
                     auto srcIndividuals = modifyWorstIndividual(population);
 
-                    successful |= evaluator(population.back());
-                    if (successful) {
+                    if (succeeds(population.back())) {
                         bestIndividual = population.back();
                         break;
                     }
 
-                    successful |= evaluator(srcIndividuals.first);
-                    if (successful) {
+                    if (succeeds(srcIndividuals.first)) {
                         bestIndividual = srcIndividuals.first;
-                        break;
-                    }
-
-                    successful |= evaluator(srcIndividuals.second);
-                    if (successful) {
-                        bestIndividual = srcIndividuals.second;
                         break;
                     }
                 } else {
                     for (auto &individual: population) {
-                        successful |= evaluator(individual);
-                        if (successful) {
+                        if (succeeds(individual)) {
                             bestIndividual = individual;
                             break;
                         }
@@ -658,7 +648,8 @@ namespace Winzent {
 
                 if (newIndividual.isBetterThan(bestIndividual)) {
                     lastSuccess = epoch;
-                    newIndividual.timeToLive = epoch;
+                    bestIndividual = newIndividual;
+                    bestIndividual.timeToLive = epoch;
                 }
 
                 // Sort the list and do a bit of caretaking:
@@ -682,9 +673,8 @@ namespace Winzent {
                             << ", population = " << population
                             << ")");
 
-                epoch++;
-            } while (! successful
-                    && epoch < maxEpochs()
+                epoch += 1;
+            } while (epoch < maxEpochs()
                     && epoch - lastSuccess <= maxNoSuccessEpochs());
 
             LOG4CXX_DEBUG(

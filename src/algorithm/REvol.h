@@ -469,8 +469,8 @@ namespace Winzent {
              *  individual. The frist reference denotes the better, the second
              *  the other individual that were chosen.
              */
-            QPair<detail::Individual &, detail::Individual &>
-                    modifyWorstIndividual(Population &population);
+            QPair<detail::Individual&, detail::Individual&>
+            modifyWorstIndividual(Population &population);
 
 
             /*!
@@ -478,13 +478,15 @@ namespace Winzent {
              *
              * \param[in] origin The origin individual
              *
-             * \param[in] evaluator The evaluator function
+             * \param[in] succeeds The evaluating predicate that returns
+             *  `true` if the given individual succeeds at the user-defined
+             *  goal, or `false` if the search must go on.
              *
              * \return The best individual
              */
             detail::REvolResult run(
                     const detail::Individual &origin,
-                    const Evaluator &evaluator);
+                    const Evaluator &succeeds);
 
 
         private:
