@@ -13,7 +13,6 @@
 #include <log4cxx/logmanager.h>
 
 #include <boost/random.hpp>
-#include <boost/ptr_container/ptr_vector.hpp>
 
 #include "REvol.h"
 
@@ -426,29 +425,29 @@ namespace Winzent {
         {
             Q_ASSERT(origin.parameters.size() == origin.scatter.size());
 
-            auto *baseIndividual = new detail::Individual(origin);
-            baseIndividual->timeToLive = startTTL();
-            baseIndividual->restrictions.push_front(
+            auto baseIndividual = detail::Individual(origin);
+            baseIndividual.timeToLive = startTTL();
+            baseIndividual.restrictions.push_front(
                     std::numeric_limits<qreal>::infinity());
 
             Population population;
             population.push_back(baseIndividual);
-            auto numParameters = baseIndividual->parameters.size();
+            auto numParameters = baseIndividual.parameters.size();
 
             for (std::size_t i = 1; i < populationSize() + 1; ++i) {
-                auto *individual = new detail::Individual();
-                individual->timeToLive = startTTL();
-                individual->parameters.reserve(numParameters);
-                individual->scatter.reserve(numParameters);
-                individual->restrictions.push_back(
+                detail::Individual individual;
+                individual.timeToLive = startTTL();
+                individual.parameters.reserve(numParameters);
+                individual.scatter.reserve(numParameters);
+                individual.restrictions.push_back(
                         numeric_limits<qreal>::infinity());
 
                 for (auto j = 0; j != numParameters; ++j) {
-                    qreal r = baseIndividual->scatter.at(j) * exp(
+                    qreal r = baseIndividual.scatter.at(j) * exp(
                             0.4 * (0.5 - frandom()));
-                    individual->scatter.push_back(r);
-                    individual->parameters.push_back(
-                            baseIndividual->parameters.at(j)
+                    individual.scatter.push_back(r);
+                    individual.parameters.push_back(
+                            baseIndividual.parameters.at(j)
                                 +r*(frandom()-frandom()+frandom()-frandom()));
                 }
 
@@ -460,22 +459,23 @@ namespace Winzent {
         }
 
 
-        QPair<detail::Individual &, detail::Individual &>
-        REvol::modifyWorstIndividual(Population &population)
+        void REvol::modifyWorstIndividual(Population &population)
         {
             Q_ASSERT(population.size() >= 3);
 
             auto &individual = population.back();
-            auto &eliteIndividual = population.at(abs(
+            auto *eliteIndividual = &population.at(abs(
                     (m_rnDistribution(m_randomNumberGenerator) % eliteSize())
                         - (m_rnDistribution(m_randomNumberGenerator)
                             % eliteSize())));
-            auto &otherIndividual = population.at(
+            auto *otherIndividual = &population.at(
                     m_rnDistribution(m_randomNumberGenerator)
                         % (population.size()-1));
 
-            if (otherIndividual.isBetterThan(eliteIndividual)) {
-                std::swap(eliteIndividual, otherIndividual);
+            if (otherIndividual->isBetterThan(*eliteIndividual)) {
+                auto *tmp = otherIndividual;
+                otherIndividual = eliteIndividual;
+                eliteIndividual = tmp;
             }
 
             qreal xlp = 0.0;
@@ -499,34 +499,34 @@ namespace Winzent {
 
             // Now modify the new individual:
 
-            auto numParameters = eliteIndividual.parameters.size();
+            auto numParameters = eliteIndividual->parameters.size();
             QVector<qreal> newParameters;
             newParameters.reserve(numParameters);
 
-            Q_ASSERT(numParameters == eliteIndividual.parameters.size());
-            Q_ASSERT(numParameters == otherIndividual.parameters.size());
+            Q_ASSERT(numParameters == eliteIndividual->parameters.size());
+            Q_ASSERT(numParameters == otherIndividual->parameters.size());
 
             for (auto i = 0; i != numParameters; ++i) {
                 std::feclearexcept(FE_ALL_EXCEPT);
 
-                qreal dx = eliteIndividual.scatter.at(i) * exp(
+                qreal dx = eliteIndividual->scatter.at(i) * exp(
                         successWeight() * successRate);
 
-                dx = applyDxBounds(dx, eliteIndividual.parameters.at(i));
+                dx = applyDxBounds(dx, eliteIndividual->parameters.at(i));
 
                 // Mutate scatter:
 
-                eliteIndividual.scatter[i] = dx;
+                eliteIndividual->scatter[i] = dx;
 
                 if (frandom() < 0.5) {
-                    dx = eliteIndividual.scatter.at(i);
+                    dx = eliteIndividual->scatter.at(i);
                 } else {
-                    dx = 0.5 * (eliteIndividual.scatter.at(i)
-                            + otherIndividual.scatter.at(i));
+                    dx = 0.5 * (eliteIndividual->scatter.at(i)
+                            + otherIndividual->scatter.at(i));
                 }
 
                 dx *= expvar;
-                dx = applyDxBounds(dx, eliteIndividual.parameters.at(i));
+                dx = applyDxBounds(dx, eliteIndividual->parameters.at(i));
 
                 // Generate new scatter:
 
@@ -538,16 +538,16 @@ namespace Winzent {
 
                 if (0 == gradientSwitch) { // Everything from the elite, p=2/3
                     if (m_rnDistribution(m_randomNumberGenerator) % 3 < 2) {
-                        dx += eliteIndividual.parameters.at(i);
+                        dx += eliteIndividual->parameters.at(i);
                     } else {
-                        dx += otherIndividual.parameters.at(i);
+                        dx += otherIndividual->parameters.at(i);
                     }
                 } else if (1 == gradientSwitch) { // use eliteIndividual
-                    dx += eliteIndividual.parameters.at(i);
+                    dx += eliteIndividual->parameters.at(i);
                 } else if (2 == gradientSwitch) { // use elite & gradient
-                    dx += eliteIndividual.parameters.at(i);
-                    dx += xlp * (eliteIndividual.parameters.at(i)
-                            - otherIndividual.parameters.at(i));
+                    dx += eliteIndividual->parameters.at(i);
+                    dx += xlp * (eliteIndividual->parameters.at(i)
+                            - otherIndividual->parameters.at(i));
                 }
 
                 newParameters.push_back(dx);
@@ -565,11 +565,7 @@ namespace Winzent {
                 }
 #endif
 
-            LOG4CXX_DEBUG(logger, "Created " << individual);
-
-            return QPair<detail::Individual &, detail::Individual &>(
-                    eliteIndividual,
-                    otherIndividual);
+            LOG4CXX_DEBUG(logger, "Modified " << individual);
         }
 
 
@@ -602,15 +598,10 @@ namespace Winzent {
                 // Modify the worst individual:
 
                 if (0 < epoch) {
-                    auto srcIndividuals = modifyWorstIndividual(population);
+                    modifyWorstIndividual(population);
 
                     if (succeeds(population.back())) {
                         bestIndividual = population.back();
-                        break;
-                    }
-
-                    if (succeeds(srcIndividuals.first)) {
-                        bestIndividual = srcIndividuals.first;
                         break;
                     }
                 } else {

@@ -156,31 +156,31 @@ void REvolTest::testCompareIndividuals()
 
 void REvolTest::testSortPopulation()
 {
-    Individual *i1 = new Individual();
-    Individual *i2 = new Individual();
-    Individual *i3 = new Individual();
+    Individual i1;
+    Individual i2;
+    Individual i3;
 
-    i1->timeToLive = 10;
-    i1->restrictions.push_back(0.25);
+    i1.timeToLive = 10;
+    i1.restrictions.push_back(0.25);
 
-    i2->timeToLive = 10;
-    i2->restrictions.push_back(0.5);
+    i2.timeToLive = 10;
+    i2.restrictions.push_back(0.5);
 
-    i3->timeToLive = 2;
-    i3->restrictions.push_back(0.5);
+    i3.timeToLive = 2;
+    i3.restrictions.push_back(0.5);
 
-    QVERIFY(i1->isBetterThan(*i2));
+    QVERIFY(i1.isBetterThan(i2));
 
     Winzent::Algorithm::REvol::Population population;
     population.push_back(i2);
     population.push_back(i1);
     population.push_back(i3);
 
-    QCOMPARE(&(population.front()), i2);
-    population.sort();
-    QCOMPARE(&(population.at(0)), i1);
-    QCOMPARE(&(population.at(1)), i2);
-    QCOMPARE(&(population.at(2)), i3);
+    QCOMPARE(population.front(), i2);
+    std::sort(population.begin(), population.end());
+    QCOMPARE(population.at(0), i1);
+    QCOMPARE(population.at(1), i2);
+    QCOMPARE(population.at(2), i3);
 }
 
 

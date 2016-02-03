@@ -2,6 +2,7 @@
 #define WINZENT_ALGORITHM_REVOL_H_
 
 
+#include <vector>
 #include <cstddef>
 #include <functional>
 
@@ -11,7 +12,6 @@
 #include <log4cxx/logger.h>
 
 #include <boost/random.hpp>
-#include <boost/ptr_container/ptr_vector.hpp>
 
 #include "algorithm_global.h"
 
@@ -163,7 +163,7 @@ namespace Winzent {
 
 
             //! Auto-deleting vector for the population
-            typedef boost::ptr_vector<detail::Individual> Population;
+            typedef std::vector<detail::Individual> Population;
 
 
             /*!
@@ -469,8 +469,7 @@ namespace Winzent {
              *  individual. The frist reference denotes the better, the second
              *  the other individual that were chosen.
              */
-            QPair<detail::Individual&, detail::Individual&>
-            modifyWorstIndividual(Population &population);
+            void modifyWorstIndividual(Population &population);
 
 
             /*!
