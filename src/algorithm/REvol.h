@@ -163,7 +163,7 @@ namespace Winzent {
 
 
             //! Auto-deleting vector for the population
-            typedef std::vector<detail::Individual> Population;
+            typedef std::vector<detail::Individual *> Population;
 
 
             /*!
