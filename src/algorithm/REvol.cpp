@@ -677,7 +677,11 @@ namespace Winzent {
                         << "winner: "
                         << *bestIndividual);
 
-            return { *bestIndividual, epoch };
+            detail::REvolResult result = { *bestIndividual, epoch };
+            for (auto &individual: population) {
+                delete individual;
+            }
+            return result;
         }
     } // namespace ANN
 } // namespace Winzent
