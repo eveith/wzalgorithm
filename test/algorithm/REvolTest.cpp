@@ -172,15 +172,15 @@ void REvolTest::testSortPopulation()
     QVERIFY(i1.isBetterThan(i2));
 
     Winzent::Algorithm::REvol::Population population;
-    population.push_back(i2);
-    population.push_back(i1);
-    population.push_back(i3);
+    population.push_back(&i2);
+    population.push_back(&i1);
+    population.push_back(&i3);
 
-    QCOMPARE(population.front(), i2);
+    QCOMPARE(population.front(), &i2);
     std::sort(population.begin(), population.end());
-    QCOMPARE(population.at(0), i1);
-    QCOMPARE(population.at(1), i2);
-    QCOMPARE(population.at(2), i3);
+    QCOMPARE(population.at(0), &i1);
+    QCOMPARE(population.at(1), &i2);
+    QCOMPARE(population.at(2), &i3);
 }
 
 

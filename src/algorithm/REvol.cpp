@@ -166,7 +166,7 @@ namespace Winzent {
         void REvol::agePopulation(Population &population)
         {
             for (auto &i: population) {
-                i.age();
+                i->age();
             }
         }
 
@@ -425,29 +425,29 @@ namespace Winzent {
         {
             Q_ASSERT(origin.parameters.size() == origin.scatter.size());
 
-            auto baseIndividual = detail::Individual(origin);
-            baseIndividual.timeToLive = startTTL();
-            baseIndividual.restrictions.push_front(
+            auto baseIndividual = new detail::Individual(origin);
+            baseIndividual->timeToLive = startTTL();
+            baseIndividual->restrictions.push_front(
                     std::numeric_limits<qreal>::infinity());
 
             Population population;
             population.push_back(baseIndividual);
-            auto numParameters = baseIndividual.parameters.size();
+            auto numParameters = baseIndividual->parameters.size();
 
-            for (std::size_t i = 1; i < populationSize() + 1; ++i) {
-                detail::Individual individual;
-                individual.timeToLive = startTTL();
-                individual.parameters.reserve(numParameters);
-                individual.scatter.reserve(numParameters);
-                individual.restrictions.push_back(
+            for (Population::size_type i = 1; i < populationSize() + 1; ++i) {
+                auto individual = new detail::Individual();
+                individual->timeToLive = startTTL();
+                individual->parameters.reserve(numParameters);
+                individual->scatter.reserve(numParameters);
+                individual->restrictions.push_back(
                         numeric_limits<qreal>::infinity());
 
                 for (auto j = 0; j != numParameters; ++j) {
-                    qreal r = baseIndividual.scatter.at(j) * exp(
+                    qreal r = baseIndividual->scatter.at(j) * exp(
                             0.4 * (0.5 - frandom()));
-                    individual.scatter.push_back(r);
-                    individual.parameters.push_back(
-                            baseIndividual.parameters.at(j)
+                    individual->scatter.push_back(r);
+                    individual->parameters.push_back(
+                            baseIndividual->parameters.at(j)
                                 +r*(frandom()-frandom()+frandom()-frandom()));
                 }
 
@@ -463,12 +463,12 @@ namespace Winzent {
         {
             Q_ASSERT(population.size() >= 3);
 
-            auto &individual = population.back();
-            auto *eliteIndividual = &population.at(abs(
+            auto *individual = population.back();
+            auto *eliteIndividual = population.at(abs(
                     (m_rnDistribution(m_randomNumberGenerator) % eliteSize())
                         - (m_rnDistribution(m_randomNumberGenerator)
                             % eliteSize())));
-            auto *otherIndividual = &population.at(
+            auto *otherIndividual = population.at(
                     m_rnDistribution(m_randomNumberGenerator)
                         % (population.size()-1));
 
@@ -500,8 +500,6 @@ namespace Winzent {
             // Now modify the new individual:
 
             auto numParameters = eliteIndividual->parameters.size();
-            QVector<qreal> newParameters;
-            newParameters.reserve(numParameters);
 
             Q_ASSERT(numParameters == eliteIndividual->parameters.size());
             Q_ASSERT(numParameters == otherIndividual->parameters.size());
@@ -530,7 +528,7 @@ namespace Winzent {
 
                 // Generate new scatter:
 
-                individual.scatter[i] = dx;
+                individual->scatter[i] = dx;
 
                 dx *= (frandom() + frandom() + frandom() + frandom()
                         + frandom() - frandom() - frandom() - frandom()
@@ -550,20 +548,11 @@ namespace Winzent {
                             - otherIndividual->parameters.at(i));
                 }
 
-                newParameters.push_back(dx);
+                individual->parameters[i] = dx;
             }
 
-            Q_ASSERT(newParameters.size() == individual.parameters.size());
-            individual.parameters = newParameters;
-            individual.timeToLive = startTTL();
-            individual.restrictions[0] = numeric_limits<qreal>::infinity();
-
-#ifdef      QT_DEBUG
-                for (auto i = 0; i != newParameters.size(); ++i) {
-                    Q_ASSERT(newParameters.at(i)
-                             == individual.parameters.at(i));
-                }
-#endif
+            individual->timeToLive = startTTL();
+            individual->restrictions[0] = numeric_limits<qreal>::infinity();
 
             LOG4CXX_DEBUG(logger, "Modified " << individual);
         }
@@ -592,7 +581,7 @@ namespace Winzent {
             size_t lastSuccess = 0;
             size_t epoch       = 0;
             Population population = generateInitialPopulation(origin);
-            detail::Individual &bestIndividual = population.front();
+            detail::Individual *bestIndividual = population.front();
 
             do {
                 // Modify the worst individual:
@@ -600,31 +589,36 @@ namespace Winzent {
                 if (0 < epoch) {
                     modifyWorstIndividual(population);
 
-                    if (succeeds(population.back())) {
+                    if (succeeds(*(population.back()))) {
                         bestIndividual = population.back();
                         break;
                     }
                 } else {
                     for (auto &individual: population) {
-                        if (succeeds(individual)) {
+                        if (succeeds(*individual)) {
                             bestIndividual = individual;
                             break;
                         }
                     }
 
-                    std::sort(population.begin(), population.end());
+                    std::sort(
+                            population.begin(),
+                            population.end(),
+                            [](detail::Individual *a, detail::Individual *b) {
+                        return *a < *b;
+                    });
+                    bestIndividual = population.front();
                 }
 
                 // Check for addition of a new individual:
 
-                bestIndividual = population.front();
                 auto &newIndividual = population.back();
                 auto &worstIndividual = population.at(population.size() - 2);
 
                 // Check for global or, at least, local improvement:
 
-                if (! worstIndividual.isBetterThan(newIndividual)) {
-                    if (worstIndividual.timeToLive >= 0) {
+                if (! worstIndividual->isBetterThan(*newIndividual)) {
+                    if (worstIndividual->timeToLive >= 0) {
                         m_success = pt1(
                                 m_success,
                                 1.0,
@@ -637,19 +631,26 @@ namespace Winzent {
                     }
                 }
 
-                if (newIndividual.isBetterThan(bestIndividual)) {
+                if (newIndividual->isBetterThan(*bestIndividual)) {
                     lastSuccess = epoch;
                     bestIndividual = newIndividual;
-                    bestIndividual.timeToLive = epoch;
+                    bestIndividual->timeToLive = epoch;
                 }
 
                 // Sort the list and do a bit of caretaking:
 
-                std::sort(population.begin(), population.end());
-                Q_ASSERT(detail::Individual::isIndividual1Better(
-                        population.front(),
-                        population.back()));
                 agePopulation(population);
+                std::sort(
+                        population.begin(),
+                        population.end(),
+                        [](detail::Individual *a, detail::Individual *b) {
+                    return *a < *b;
+                });
+
+                Q_ASSERT(detail::Individual::isIndividual1Better(
+                        *population.front(),
+                        *population.back()));
+
                 m_success = pt1(m_success, 0.0, measurementEpochs());
 
                 LOG4CXX_DEBUG(
@@ -674,9 +675,9 @@ namespace Winzent {
                         << epoch
                         << " epochs; "
                         << "winner: "
-                        << bestIndividual);
+                        << *bestIndividual);
 
-            return { bestIndividual, epoch };
+            return { *bestIndividual, epoch };
         }
     } // namespace ANN
 } // namespace Winzent
@@ -744,8 +745,8 @@ namespace std {
     {
         os << "(";
         for (const auto &i: v) {
-            os << i;
-            if (&i != &(v.back())) {
+            os << *i;
+            if (i != v.back()) {
                 os << ", ";
             }
         }
