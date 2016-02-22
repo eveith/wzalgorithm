@@ -17,9 +17,6 @@
 #include "REvol.h"
 
 
-#pragma STDC FENV_ACCESS ON
-
-
 using std::exp;
 using std::fabs;
 using std::numeric_limits;
@@ -361,10 +358,7 @@ namespace Winzent {
         }
 
 
-        qreal REvol::applyDxBounds(
-                const qreal &dx,
-                const qreal &parameter)
-                const
+        qreal REvol::clamp(const qreal &dx, const qreal &parameter) const
         {
             qreal cdx = dx;
 
@@ -523,7 +517,7 @@ namespace Winzent {
                 qreal dx = eliteIndividual->scatter.at(i) * exp(
                         successWeight() * successRate);
 
-                dx = applyDxBounds(dx, eliteIndividual->parameters.at(i));
+                dx = clamp(dx, eliteIndividual->parameters.at(i));
 
                 // Mutate scatter:
 
@@ -537,7 +531,7 @@ namespace Winzent {
                 }
 
                 dx *= expvar;
-                dx = applyDxBounds(dx, eliteIndividual->parameters.at(i));
+                dx = clamp(dx, eliteIndividual->parameters.at(i));
 
                 // Generate new scatter:
 

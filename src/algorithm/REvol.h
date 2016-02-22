@@ -613,7 +613,7 @@ namespace Winzent {
              *
              * \return The corrected delta X
              */
-            qreal applyDxBounds(const qreal &dx, const qreal &parameter)
+            qreal clamp(const qreal &dx, const qreal &parameter)
                     const;
 
 
