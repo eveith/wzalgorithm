@@ -735,6 +735,7 @@ namespace std {
                 << "maxNoSuccessEpochs = " << algorithm.maxNoSuccessEpochs()
                 << ", populationSize = " << algorithm.populationSize()
                 << ", eliteSize = " << algorithm.eliteSize()
+                << ", startTTL = " << algorithm.startTTL()
                 << ", eamin = " << algorithm.eamin()
                 << ", ebmin = " << algorithm.ebmin()
                 << ", ebmax = " << algorithm.ebmax();
