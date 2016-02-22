@@ -283,6 +283,19 @@ namespace Winzent {
         }
 
 
+        qreal REvol::targetSuccess() const
+        {
+            return m_targetSuccess;
+        }
+
+
+        REvol &REvol::targetSuccess(const qreal &targetSuccess)
+        {
+            m_targetSuccess = targetSuccess;
+            return *this;
+        }
+
+
         qreal REvol::eamin() const
         {
             return m_eamin;

@@ -333,6 +333,26 @@ namespace Winzent {
 
 
             /*!
+             * \brief Accesses the target success rate.
+             *
+             * \return The target sucess rate
+             */
+            qreal targetSuccess() const;
+
+
+            /*!
+             * \brief Sets the targeted success rate
+             *
+             * \param[in] targetSuccess The targeted success rate
+             *
+             * \return `*this`
+             *
+             * \sa REvol::measurementEpochs()
+             */
+            REvol &targetSuccess(const qreal &targetSuccess);
+
+
+            /*!
              * \brief The smallest absolute change applied during object
              *  creation
              *
