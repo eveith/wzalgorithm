@@ -166,9 +166,9 @@ namespace Winzent {
             std::sort(swarm.begin(), swarm.end());
             best = &(swarm.front());
             bool success = false;
-            size_t i;
+            size_t i = 0;
 
-            for (i = 0; i < maxIterations() && !success; ++i) {
+            while (i < maxIterations() && ! success) {
                 for (int k = 0; k != swarm.size(); ++k) {
                     auto &particle = swarm[k];
                     auto neighborIndices = neighbors(k, swarm.size());
@@ -207,7 +207,7 @@ namespace Winzent {
                         particle.currentPosition[j] = newX;
                     }
 
-                    success = evaluator(particle);
+                    success |= evaluator(particle);
 
                     if (particle.currentFitness < particle.bestFitness) {
                         particle.bestFitness = particle.currentFitness;
@@ -218,6 +218,8 @@ namespace Winzent {
                         best = &particle;
                     }
                 }
+
+                i += 1;
             }
 
             return { *best, i };

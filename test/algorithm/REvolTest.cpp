@@ -124,28 +124,25 @@ void REvolTest::testCompareIndividuals()
 {
     Individual i1, i2;
 
-    QCOMPARE(0, i1.compare(i2));
+    QVERIFY(! i1.isBetterThan(i2));
 
     i2.timeToLive = 1;
-    QCOMPARE(0, i1.compare(i2));
+    QVERIFY(! i1.isBetterThan(i2));
 
     i1.age();
-    QCOMPARE(-1, i1.compare(i2));
+    QVERIFY(i2.isBetterThan(i1));
 
     i1.timeToLive = 1;
     i2.timeToLive = 1;
 
     i1.restrictions << 1.0;
-    QCOMPARE(0, i1.compare(i2));
     QVERIFY(! i1.isBetterThan(i2));
 
     i2.restrictions << 1.0;
     QVERIFY(!i1.isBetterThan(i2));
-    QCOMPARE(0, i2.compare(i1));
 
     i1.restrictions[0] = 5.0;
     QVERIFY(! i1.isBetterThan(i2));
-    QCOMPARE(1, i2.compare(i1));
 
     i1.restrictions[0] = i2.restrictions[0];
     i1.restrictions << 1.0 << 2.0;

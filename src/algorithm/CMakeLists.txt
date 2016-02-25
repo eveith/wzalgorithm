@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 PROJECT(winzent-algorithm)
 
-set(winzent-algorithm_MAJOR_VERSION ${WINZENT_MAJOR_VERSION})
-set(winzent-algorithm_MINOR_VERSION 1)
+set(winzent-algorithm_VERSION_MAJOR ${WINZENT_VERSION_MAJOR})
+set(winzent-algorithm_VERSION_MINOR 1)
 set(winzent-algorithm_PATCHLEVEL 0)
 
 set(winzent-algorithm_SOVERSION
-    "${winzent-algorithm_MAJOR_VERSION}.${winzent-algorithm_MINOR_VERSION}")
+    "${winzent-algorithm_VERSION_MAJOR}.${winzent-algorithm_VERSION_MINOR}")
 
 set(winzent-algorithm_SOURCES
     REvol.cpp

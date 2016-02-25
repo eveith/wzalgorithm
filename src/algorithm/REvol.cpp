@@ -47,28 +47,20 @@ namespace Winzent {
         }
 
 
-        int detail::Individual::compare(const detail::Individual &other) const
+        bool detail::Individual::isBetterThan(
+                const detail::Individual &other)
+                const
         {
             if (this->timeToLive < 0 && other.timeToLive >= 0) {
-                return -1;
+                return false;
             }
 
             if (this->timeToLive >= 0 && other.timeToLive < 0) {
-                return 1;
+                return true;
             }
 
             if (0 == restrictions.size() || 0 == other.restrictions.size()) {
-                return 0;
-            }
-
-            if (this->restrictions.at(0) < other.restrictions.at(0)) {
-                return 1;
-            } else if (restrictions.at(0) > other.restrictions.at(0)) {
-                return -1;
-            } else if (restrictions.at(0) == other.restrictions.at(0)) {
-                if (timeToLive > other.timeToLive) {
-                    return 1;
-                }
+                return false;
             }
 
             auto size = (
@@ -76,23 +68,30 @@ namespace Winzent {
                     ? other.restrictions.size()
                     : this->restrictions.size());
             for (auto i = 1; i < size; ++i) {
-                if (restrictions.at(i) < other.restrictions.at(i)) {
-                    return 1;
-                } else if (other.restrictions.at(i)
-                        < this->restrictions.at(i)) {
-                    return -1;
+                if (this->restrictions.at(i) < other.restrictions.at(i)) {
+                    return true;
+                } else {
+                    if (this->restrictions.at(i) > other.restrictions.at(i)) {
+                        return false;
+                    }
                 }
             }
 
-            return 0;
-        }
+            if (this->restrictions.at(0) == other.restrictions.at(0)) {
+                if (this->timeToLive > other.timeToLive) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                if (this->restrictions.at(0) < other.restrictions.at(0)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
 
-
-        bool detail::Individual::isBetterThan(
-                const detail::Individual &other)
-                const
-        {
-            return (1 == compare(other));
+            return false;
         }
 
 
@@ -130,10 +129,10 @@ namespace Winzent {
                 return *this;
             }
 
-            timeToLive    = other.timeToLive;
-            parameters    = other.parameters;
-            scatter       = other.scatter;
-            restrictions  = other.restrictions;
+            this->timeToLive    = other.timeToLive;
+            this->parameters    = other.parameters;
+            this->scatter       = other.scatter;
+            this->restrictions  = other.restrictions;
 
             return *this;
         }
@@ -148,15 +147,11 @@ namespace Winzent {
 
         qreal REvol::pt1(const qreal &y, const qreal &u, const qreal &t)
         {
-            qreal r = 0.0;
-
             if (t + 1.0 != 1.0) {
-                r = y + ((u - y) / t);
+                return y + ((u - y) / t);
             } else {
-                r = u;
+                return u;
             }
-
-            return r;
         }
 
 
