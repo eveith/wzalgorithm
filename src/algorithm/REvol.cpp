@@ -442,7 +442,7 @@ namespace Winzent {
                 individual->parameters.reserve(numParameters);
                 individual->scatter.reserve(numParameters);
                 individual->restrictions.push_back(
-                        numeric_limits<qreal>::infinity());
+                        numeric_limits<qreal>::max());
 
                 for (auto j = 0; j != numParameters; ++j) {
                     qreal r = baseIndividual->scatter.at(j) * exp(
@@ -554,7 +554,7 @@ namespace Winzent {
             }
 
             individual->timeToLive = startTTL();
-            individual->restrictions[0] = numeric_limits<qreal>::infinity();
+            individual->restrictions[0] = numeric_limits<qreal>::max();
 
             LOG4CXX_DEBUG(logger, "Modified " << individual);
         }
@@ -582,6 +582,7 @@ namespace Winzent {
 
             size_t lastSuccess = 0;
             size_t epoch       = 0;
+            m_success          = targetSuccess();
             Population population = generateInitialPopulation(origin);
             detail::Individual *bestIndividual = population.front();
 
@@ -648,10 +649,6 @@ namespace Winzent {
                         [](detail::Individual *a, detail::Individual *b) {
                     return *a < *b;
                 });
-
-                Q_ASSERT(detail::Individual::isIndividual1Better(
-                        *population.front(),
-                        *population.back()));
 
                 m_success = pt1(m_success, 0.0, measurementEpochs());
 
