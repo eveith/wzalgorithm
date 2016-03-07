@@ -13,6 +13,7 @@
 #include <log4cxx/logmanager.h>
 
 #include <boost/random.hpp>
+#include <boost/ptr_container/ptr_vector.hpp>
 
 #include "REvol.h"
 
@@ -36,6 +37,15 @@ namespace Winzent {
                 scatter(other.scatter),
                 timeToLive(other.timeToLive),
                 restrictions(other.restrictions)
+        {
+        }
+
+
+        detail::Individual::Individual(const detail::Individual &&other):
+                parameters(std::move(other.parameters)),
+                scatter(std::move(other.scatter)),
+                timeToLive(std::move(other.timeToLive)),
+                restrictions(std::move(other.restrictions))
         {
         }
 
@@ -106,19 +116,17 @@ namespace Winzent {
         bool detail::Individual::operator ==(const detail::Individual &other)
                 const
         {
-#ifdef      QT_DEBUG
-                bool ok = true;
-                ok &= timeToLive == other.timeToLive;
-                ok &= other.restrictions == restrictions;
-                ok &= other.scatter == scatter;
-                ok &= other.parameters == parameters;
-                return ok;
-#else
-                return (other.timeToLive == timeToLive
-                        && other.restrictions == restrictions
-                        && other.scatter == scatter
-                        && other.parameters == parameters);
-#endif
+                return (other.timeToLive == this->timeToLive
+                        && other.restrictions == this->restrictions
+                        && other.scatter == this->scatter
+                        && other.parameters == this->parameters);
+        }
+
+
+        bool detail::Individual::operator !=(const detail::Individual &other)
+                const
+        {
+            return !(*this == other);
         }
 
 
@@ -158,7 +166,7 @@ namespace Winzent {
         void REvol::agePopulation(Population &population)
         {
             for (auto &i: population) {
-                i->age();
+                i.age();
             }
         }
 
@@ -177,12 +185,11 @@ namespace Winzent {
                 m_eliteSize(0),
                 m_gradientWeight(1.0),
                 m_successWeight(1.0),
-                m_eamin(1e-30),
-                m_ebmin(1e-7),
+                m_eamin(std::numeric_limits<qreal>::min()),
+                m_ebmin(1e-12),
                 m_ebmax(1e-1),
                 m_startTTL(0),
                 m_measurementEpochs(5000),
-                m_success(0.25),
                 m_targetSuccess(0.25),
                 m_randomNumberGenerator(0xCAFEu)
         {
@@ -427,16 +434,21 @@ namespace Winzent {
         {
             Q_ASSERT(origin.parameters.size() == origin.scatter.size());
 
+            Population population;
+            population.reserve(populationSize() + 1);
+            auto numParameters = origin.parameters.size();
+
+
+            // Handle base (origin) individual:
+
             auto baseIndividual = new detail::Individual(origin);
             baseIndividual->timeToLive = startTTL();
-            baseIndividual->restrictions.push_front(
-                    std::numeric_limits<qreal>::infinity());
-
-            Population population;
+            baseIndividual->restrictions.push_back(
+                    std::numeric_limits<qreal>::max());
             population.push_back(baseIndividual);
-            auto numParameters = baseIndividual->parameters.size();
 
-            for (Population::size_type i = 1; i < populationSize() + 1; ++i) {
+
+            for (size_t i = 0; i < populationSize(); ++i) {
                 auto individual = new detail::Individual();
                 individual->timeToLive = startTTL();
                 individual->parameters.reserve(numParameters);
@@ -445,43 +457,52 @@ namespace Winzent {
                         numeric_limits<qreal>::max());
 
                 for (auto j = 0; j != numParameters; ++j) {
-                    qreal r = baseIndividual->scatter.at(j) * exp(
-                            0.4 * (0.5 - frandom()));
+                    qreal r = origin.scatter.at(j)
+                            * exp(0.4 * (0.5 - frandom()));
                     individual->scatter.push_back(r);
                     individual->parameters.push_back(
-                            baseIndividual->parameters.at(j)
+                            origin.parameters.at(j)
                                 +r*(frandom()-frandom()+frandom()-frandom()));
                 }
 
                 population.push_back(individual);
             }
 
+
             Q_ASSERT(population.size() == populationSize() + 1);
-            return population;
+            return std::move(population);
         }
 
 
-        void REvol::modifyWorstIndividual(Population &population)
+        void REvol::modifyWorstIndividual(
+                Population &population,
+                const qreal &currentSuccess)
         {
             Q_ASSERT(population.size() >= 3);
 
-            auto *individual = population.back();
-            auto *eliteIndividual = population.at(abs(
+            // Select proper individuals:
+
+            Population::size_type eliteIdx = abs(
                     (m_rnDistribution(m_randomNumberGenerator) % eliteSize())
                         - (m_rnDistribution(m_randomNumberGenerator)
-                            % eliteSize())));
-            auto *otherIndividual = population.at(
+                            % eliteSize()));
+            Population::size_type otherIdx =
                     m_rnDistribution(m_randomNumberGenerator)
-                        % (population.size()-1));
+                        % (population.size()-1);
 
-            if (otherIndividual->isBetterThan(*eliteIndividual)) {
-                auto *tmp = otherIndividual;
-                otherIndividual = eliteIndividual;
-                eliteIndividual = tmp;
+            if (population.at(otherIdx) < population.at(eliteIdx)) {
+                std::swap(eliteIdx, otherIdx);
             }
 
+            auto &individual = population.back();
+            auto &eliteIndividual = population.at(eliteIdx);
+            auto &otherIndividual = population.at(otherIdx);
+
+
+            // Determine influence of current success rate and gradient:
+
             qreal xlp = 0.0;
-            qreal successRate = m_success / m_targetSuccess - 1.0;
+            qreal successRate = currentSuccess / targetSuccess() - 1.0;
             int gradientSwitch = m_rnDistribution(m_randomNumberGenerator)%3;
             qreal expvar = exp(frandom() - frandom());
 
@@ -501,36 +522,35 @@ namespace Winzent {
 
             // Now modify the new individual:
 
-            auto numParameters = eliteIndividual->parameters.size();
+            auto numParameters = eliteIndividual.parameters.size();
 
-            Q_ASSERT(numParameters == eliteIndividual->parameters.size());
-            Q_ASSERT(numParameters == otherIndividual->parameters.size());
+            Q_ASSERT(numParameters == eliteIndividual.parameters.size());
+            Q_ASSERT(numParameters == otherIndividual.parameters.size());
 
             for (auto i = 0; i != numParameters; ++i) {
                 std::feclearexcept(FE_ALL_EXCEPT);
 
-                qreal dx = eliteIndividual->scatter.at(i) * exp(
+                qreal dx = eliteIndividual.scatter.at(i) * exp(
                         successWeight() * successRate);
-
-                dx = clamp(dx, eliteIndividual->parameters.at(i));
+                dx = clamp(dx, eliteIndividual.parameters.at(i));
 
                 // Mutate scatter:
 
-                eliteIndividual->scatter[i] = dx;
+                eliteIndividual.scatter[i] = dx;
 
                 if (frandom() < 0.5) {
-                    dx = eliteIndividual->scatter.at(i);
+                    dx = eliteIndividual.scatter.at(i);
                 } else {
-                    dx = 0.5 * (eliteIndividual->scatter.at(i)
-                            + otherIndividual->scatter.at(i));
+                    dx = 0.5 * (eliteIndividual.scatter.at(i)
+                            + otherIndividual.scatter.at(i));
                 }
 
                 dx *= expvar;
-                dx = clamp(dx, eliteIndividual->parameters.at(i));
+                dx = clamp(dx, eliteIndividual.parameters.at(i));
 
                 // Generate new scatter:
 
-                individual->scatter[i] = dx;
+                individual.scatter[i] = dx;
 
                 dx *= (frandom() + frandom() + frandom() + frandom()
                         + frandom() - frandom() - frandom() - frandom()
@@ -538,23 +558,23 @@ namespace Winzent {
 
                 if (0 == gradientSwitch) { // Everything from the elite, p=2/3
                     if (m_rnDistribution(m_randomNumberGenerator) % 3 < 2) {
-                        dx += eliteIndividual->parameters.at(i);
+                        dx += eliteIndividual.parameters.at(i);
                     } else {
-                        dx += otherIndividual->parameters.at(i);
+                        dx += otherIndividual.parameters.at(i);
                     }
                 } else if (1 == gradientSwitch) { // use eliteIndividual
-                    dx += eliteIndividual->parameters.at(i);
+                    dx += eliteIndividual.parameters.at(i);
                 } else if (2 == gradientSwitch) { // use elite & gradient
-                    dx += eliteIndividual->parameters.at(i);
-                    dx += xlp * (eliteIndividual->parameters.at(i)
-                            - otherIndividual->parameters.at(i));
+                    dx += eliteIndividual.parameters.at(i);
+                    dx += xlp * (eliteIndividual.parameters.at(i)
+                            - otherIndividual.parameters.at(i));
                 }
 
-                individual->parameters[i] = dx;
+                individual.parameters[i] = dx;
             }
 
-            individual->timeToLive = startTTL();
-            individual->restrictions[0] = numeric_limits<qreal>::max();
+            individual.timeToLive = startTTL();
+            individual.restrictions[0] = numeric_limits<qreal>::max();
 
             LOG4CXX_DEBUG(logger, "Modified " << individual);
         }
@@ -582,35 +602,30 @@ namespace Winzent {
 
             size_t lastSuccess = 0;
             size_t epoch       = 0;
-            m_success          = targetSuccess();
+            auto currentSuccess= targetSuccess();
             Population population = generateInitialPopulation(origin);
-            detail::Individual *bestIndividual = population.front();
+            detail::Individual *bestIndividual = &(population.front());
 
             do {
                 // Modify the worst individual:
 
                 if (0 < epoch) {
-                    modifyWorstIndividual(population);
+                    modifyWorstIndividual(population, currentSuccess);
 
-                    if (succeeds(*(population.back()))) {
-                        bestIndividual = population.back();
+                    if (succeeds(population.back())) {
+                        bestIndividual = &(population.back());
                         break;
                     }
                 } else {
                     for (auto &individual: population) {
-                        if (succeeds(*individual)) {
-                            bestIndividual = individual;
+                        if (succeeds(individual)) {
+                            bestIndividual = &individual;
                             break;
                         }
                     }
 
-                    std::sort(
-                            population.begin(),
-                            population.end(),
-                            [](detail::Individual *a, detail::Individual *b) {
-                        return *a < *b;
-                    });
-                    bestIndividual = population.front();
+                    population.sort();
+                    bestIndividual = &(population.front());
                 }
 
                 // Check for addition of a new individual:
@@ -620,44 +635,41 @@ namespace Winzent {
 
                 // Check for global or, at least, local improvement:
 
-                if (! worstIndividual->isBetterThan(*newIndividual)) {
-                    if (worstIndividual->timeToLive >= 0) {
-                        m_success = pt1(
-                                m_success,
+                if (! worstIndividual.isBetterThan(newIndividual)) {
+                    if (worstIndividual.timeToLive >= 0) {
+                        currentSuccess = pt1(
+                                currentSuccess,
                                 1.0,
                                 measurementEpochs());
                     } else {
-                        m_success = pt1(
-                                m_success,
+                        currentSuccess = pt1(
+                                currentSuccess,
                                 -1.0,
                                 measurementEpochs());
                     }
                 }
 
-                if (newIndividual->isBetterThan(*bestIndividual)) {
+                if (newIndividual.isBetterThan(*bestIndividual)) {
                     lastSuccess = epoch;
-                    bestIndividual = newIndividual;
+                    bestIndividual = &newIndividual;
                     bestIndividual->timeToLive = epoch;
                 }
 
                 // Sort the list and do a bit of caretaking:
 
                 agePopulation(population);
-                std::sort(
-                        population.begin(),
-                        population.end(),
-                        [](detail::Individual *a, detail::Individual *b) {
-                    return *a < *b;
-                });
-
-                m_success = pt1(m_success, 0.0, measurementEpochs());
+                population.sort();
+                currentSuccess = pt1(
+                        currentSuccess,
+                        0.0,
+                        measurementEpochs());
 
                 LOG4CXX_DEBUG(
                         logger,
                         "Iteration(epoch = " << epoch
                             << ", maxEpochs = " << maxEpochs()
-                            << ", success = " << m_success
-                            << ", targetSuccess = " << m_targetSuccess
+                            << ", success = " << currentSuccess
+                            << ", targetSuccess = " << targetSuccess()
                             << ", lastSuccess = " << lastSuccess
                             << ", maxNoSuccessEpochs = "
                                 << maxNoSuccessEpochs()
@@ -677,9 +689,6 @@ namespace Winzent {
                         << *bestIndividual);
 
             detail::REvolResult result = { *bestIndividual, epoch };
-            for (auto &individual: population) {
-                delete individual;
-            }
             return result;
         }
     } // namespace ANN
@@ -749,8 +758,8 @@ namespace std {
     {
         os << "(";
         for (const auto &i: v) {
-            os << *i;
-            if (i != v.back()) {
+            os << i;
+            if (&i != &(v.back())) {
                 os << ", ";
             }
         }

@@ -2,16 +2,15 @@
 #define WINZENT_ALGORITHM_REVOL_H_
 
 
-#include <vector>
 #include <cstddef>
 #include <functional>
 
-#include <QPair>
 #include <QVector>
 
 #include <log4cxx/logger.h>
 
 #include <boost/random.hpp>
+#include <boost/ptr_container/ptr_vector.hpp>
 
 #include "algorithm_global.h"
 
@@ -59,24 +58,16 @@ namespace Winzent {
                 Individual(const Individual &other);
 
 
+                //! \brief Move constructor
+                Individual(const Individual &&other);
+
+
                 /*!
                  * \brief Ages the individuum, i.e., reduces its time to live.
                  *
                  * \return `*this`
                  */
                 Individual &age();
-
-
-                /*!
-                 * \brief Compares one individual to another.
-                 *
-                 * \param other The other individual
-                 *
-                 * \return -1 if the other individual is better than this one,
-                 *  0 if they are equal, or 1 if this one is better than
-                 *  the other individual.
-                 */
-                int compare(const Individual &other) const;
 
 
                 /*!
@@ -113,7 +104,20 @@ namespace Winzent {
                  *
                  * \return `true` iff equal, `false` otherwise.
                  */
-                bool operator==(const Individual &other) const;
+                bool operator ==(const Individual &other) const;
+
+
+                /*!
+                 * \brief Compares two individuals for unequality
+                 *
+                 * \param[in] other The other individual to compare the
+                 *  current one to
+                 *
+                 * \return `! (*this == other)`
+                 *
+                 * \sa operator==()
+                 */
+                bool operator !=(const Individual &other) const;
 
 
                 /*!
@@ -163,7 +167,7 @@ namespace Winzent {
 
 
             //! Auto-deleting vector for the population
-            typedef std::vector<detail::Individual *> Population;
+            typedef boost::ptr_vector<detail::Individual> Population;
 
 
             /*!
@@ -484,12 +488,16 @@ namespace Winzent {
              *
              * \param population The current population; must be sorted
              *
+             * \param[in] currentSuccess The momentary success rate
+             *
              * \return A pair containing the two individuals out of the
              *  population that were used to modifiy the given target
              *  individual. The frist reference denotes the better, the second
              *  the other individual that were chosen.
              */
-            void modifyWorstIndividual(Population &population);
+            void modifyWorstIndividual(
+                    Population &population,
+                    const qreal &currentSuccess);
 
 
             /*!
@@ -549,34 +557,20 @@ namespace Winzent {
             qreal m_eamin;
 
 
-            /*!
-             * \brief Smallest relative delta
-             */
+            //! \brief Smallest relative delta
             qreal m_ebmin;
 
 
-            /*!
-             * \brief The biggest relative change
-             */
+            //! \brief The biggest relative change
             qreal m_ebmax;
 
 
-            /*!
-             * \brief Initial Time-To-Live for new individuals
-             */
+            //! \brief Initial Time-To-Live for new individuals
             std::ptrdiff_t m_startTTL;
 
 
-            /*!
-             * \brief Number of epochs to apply to the dc1 method
-             */
+            //! \brief Number of epochs to apply to the dc1 method
             std::size_t m_measurementEpochs;
-
-
-            /*!
-             * \brief Success of reproduction
-             */
-            qreal m_success;
 
 
             /*!
