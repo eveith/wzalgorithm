@@ -25,11 +25,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 find_package(Qt5Core REQUIRED)
 
 
-# Tweak for C++14:
-
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
         OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-    add_compile_options(-std=c++1y)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops")
 endif()
 
 
@@ -40,7 +38,8 @@ target_link_libraries(winzent-algorithm
     m
     Qt5::Core)
 set_target_properties(winzent-algorithm
-    PROPERTIES SOVERSION ${winzent-algorithm_SOVERSION})
+    PROPERTIES SOVERSION ${winzent-algorithm_SOVERSION}
+    CXX_STANDARD 14)
 
 install(TARGETS winzent-algorithm LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(FILES ${winzent-algorithm_HEADERS} DESTINATION include/winzent/algorithm)
