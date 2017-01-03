@@ -5,14 +5,10 @@
 #include <cstddef>
 #include <functional>
 
-#include <QVector>
-
-#include <log4cxx/logger.h>
-
 #include <boost/random.hpp>
 #include <boost/ptr_container/ptr_vector.hpp>
 
-#include "algorithm_global.h"
+#include "config.h"
 
 
 namespace Winzent {
@@ -24,14 +20,14 @@ namespace Winzent {
              * \brief The Individual class represents an individual during the
              *  training phase of the evolutionary algorithm
              */
-            struct ALGORTHMSHARED_EXPORT Individual
+            struct Individual
             {
                 //! The parameters vector of this individual
-                QVector<qreal> parameters;
+                vector_t parameters;
 
 
                 //! The scatter vector for the parameters
-                QVector<qreal> scatter;
+                vector_t scatter;
 
 
                 //! The individual's time to live: How long may it exist?
@@ -39,7 +35,7 @@ namespace Winzent {
 
 
                 //! Restrictions specifing the fitness of the individual
-                QVector<qreal> restrictions;
+                vector_t restrictions;
 
 
                 /*!
@@ -55,11 +51,11 @@ namespace Winzent {
                  *
                  * \param[in] The other individual to copy
                  */
-                Individual(const Individual &other);
+                Individual(Individual const& other);
 
 
                 //! \brief Move constructor
-                Individual(const Individual &&other);
+                Individual(Individual&& other);
 
 
                 /*!
@@ -67,7 +63,7 @@ namespace Winzent {
                  *
                  * \return `*this`
                  */
-                Individual &age();
+                Individual& age();
 
 
                 /*!
@@ -78,7 +74,7 @@ namespace Winzent {
                  *
                  * \return true if the object is better, false otherwise.
                  */
-                bool isBetterThan(const Individual &other) const;
+                bool isBetterThan(Individual const& other) const;
 
 
                 /*!
@@ -104,7 +100,7 @@ namespace Winzent {
                  *
                  * \return `true` iff equal, `false` otherwise.
                  */
-                bool operator ==(const Individual &other) const;
+                bool operator ==(Individual const& other) const;
 
 
                 /*!
@@ -117,7 +113,7 @@ namespace Winzent {
                  *
                  * \sa operator==()
                  */
-                bool operator !=(const Individual &other) const;
+                bool operator !=(Individual const& other) const;
 
 
                 /*!
@@ -127,7 +123,7 @@ namespace Winzent {
                  *
                  * \return A deep copy
                  */
-                Individual &operator=(const Individual &other);
+                Individual& operator=(Individual const& other);
 
 
                 /*!
@@ -139,12 +135,12 @@ namespace Winzent {
                  * \return `true` if this Individual is better than the other
                  *  one, `false` otherwise
                  */
-                bool operator<(const Individual &other) const;
+                bool operator <(Individual const& other) const;
             };
 
 
             //! The result of a run of the REvol algorithm
-            struct ALGORTHMSHARED_EXPORT REvolResult
+            struct REvolResult
             {
                 //! The best individual
                 Individual bestIndividual;
@@ -161,7 +157,7 @@ namespace Winzent {
          *  gradient information and dynamic reproduction probabilty spread
          *  of the individuals.
          */
-        class ALGORTHMSHARED_EXPORT REvol
+        class REvol
         {
         public:
 
@@ -188,11 +184,11 @@ namespace Winzent {
              * \return `true` if the individual's evaluation satisfies the
              *  user-determined success criterion, `false` otherwise
              */
-            typedef std::function<bool(detail::Individual &)> Evaluator;
+            typedef std::function<bool (detail::Individual&)> Evaluator;
 
 
             //! A time-discrete LTI system of first order
-            static qreal pt1(const qreal &y, const qreal &u, const qreal &t);
+            static double pt1(double y, double u, double t);
 
 
             /*!
@@ -200,7 +196,7 @@ namespace Winzent {
              *
              * \param population The population
              */
-            static void agePopulation(Population &population);
+            static void agePopulation(Population& population);
 
 
             //! Creates a new, un-initialized instance of this algorithm
@@ -212,7 +208,7 @@ namespace Winzent {
              *
              * \return A random number between 0.0 and 1.0 (exclusive)
              */
-            qreal frandom();
+            double frandom();
 
 
             /*!
@@ -232,7 +228,7 @@ namespace Winzent {
              *
              * \return `*this`
              */
-            REvol &maxEpochs(const std::size_t &epochs);
+            REvol& maxEpochs(size_t epochs);
 
 
             /*!
@@ -241,7 +237,7 @@ namespace Winzent {
              *
              * \return The number of epochs
              */
-            std::size_t maxNoSuccessEpochs() const;
+            size_t maxNoSuccessEpochs() const;
 
 
             /*!
@@ -252,7 +248,7 @@ namespace Winzent {
              *
              * \return `*this`
              */
-            REvol &maxNoSuccessEpochs(const std::size_t &epochs);
+            REvol& maxNoSuccessEpochs(size_t epochs);
 
 
             /*!
@@ -260,7 +256,7 @@ namespace Winzent {
              *
              * \return The population's size
              */
-            std::size_t populationSize() const;
+            size_t populationSize() const;
 
 
             /*!
@@ -270,7 +266,7 @@ namespace Winzent {
              *
              * \return `*this`
              */
-            REvol &populationSize(const std::size_t &size);
+            REvol& populationSize(size_t size);
 
 
             /*!
@@ -278,7 +274,7 @@ namespace Winzent {
              *
              * \return The number of elite individuals within the population
              */
-            std::size_t eliteSize() const;
+            size_t eliteSize() const;
 
 
             /*!
@@ -288,7 +284,7 @@ namespace Winzent {
              *
              * \return `*this`
              */
-            REvol &eliteSize(const std::size_t &size);
+            REvol& eliteSize(size_t size);
 
 
             /*!
@@ -296,7 +292,7 @@ namespace Winzent {
              *
              * \return The gradient weight
              */
-            qreal gradientWeight() const;
+            double gradientWeight() const;
 
 
             /*!
@@ -312,7 +308,7 @@ namespace Winzent {
              *
              * \return `*this`
              */
-            REvol &gradientWeight(const qreal &weight);
+            REvol& gradientWeight(double weight);
 
 
             /*!
@@ -320,7 +316,7 @@ namespace Winzent {
              *
              * \return The error weight
              */
-            qreal successWeight() const;
+            double successWeight() const;
 
 
             /*!
@@ -333,7 +329,7 @@ namespace Winzent {
              *
              * \return `*this`
              */
-            REvol &successWeight(const qreal &weight);
+            REvol& successWeight(double weight);
 
 
             /*!
@@ -341,7 +337,7 @@ namespace Winzent {
              *
              * \return The target sucess rate
              */
-            qreal targetSuccess() const;
+            double targetSuccess() const;
 
 
             /*!
@@ -353,7 +349,7 @@ namespace Winzent {
              *
              * \sa REvol::measurementEpochs()
              */
-            REvol &targetSuccess(const qreal &targetSuccess);
+            REvol &targetSuccess(double targetSuccess);
 
 
             /*!
@@ -362,7 +358,7 @@ namespace Winzent {
              *
              * \return The smallest absolute delta
              */
-            qreal eamin() const;
+            double eamin() const;
 
 
             /*!
@@ -377,7 +373,7 @@ namespace Winzent {
              *
              * \return `*this`
              */
-            REvol &eamin(const qreal &eamin);
+            REvol& eamin(double eamin);
 
 
             /*!
@@ -385,7 +381,7 @@ namespace Winzent {
              *
              * \return The smallest relative change for scatter/parameters
              */
-            qreal ebmin() const;
+            double ebmin() const;
 
 
             /*!
@@ -398,7 +394,7 @@ namespace Winzent {
              *
              * \return `*this`
              */
-            REvol &ebmin(const qreal &ebmin);
+            REvol& ebmin(double ebmin);
 
 
             /*!
@@ -406,7 +402,7 @@ namespace Winzent {
              *
              * \return The relative maximum
              */
-            qreal ebmax() const;
+            double ebmax() const;
 
 
             /*!
@@ -420,7 +416,7 @@ namespace Winzent {
              *
              * \return `*this`
              */
-            REvol &ebmax(const qreal &ebmax);
+            REvol& ebmax(double ebmax);
 
 
             /*!
@@ -442,7 +438,7 @@ namespace Winzent {
              *
              * \return `*this`
              */
-            REvol &startTTL(const std::ptrdiff_t &ttl);
+            REvol& startTTL(std::ptrdiff_t ttl);
 
 
             /*!
@@ -460,7 +456,7 @@ namespace Winzent {
              *
              * \return `*this`
              */
-            REvol &measurementEpochs(const size_t &epochs);
+            REvol& measurementEpochs(size_t epochs);
 
 
             /*!
@@ -473,7 +469,7 @@ namespace Winzent {
              * \return The population, including the elite
              */
             Population generateInitialPopulation(
-                    const detail::Individual &origin);
+                    detail::Individual const& origin);
 
 
             /*!
@@ -496,8 +492,8 @@ namespace Winzent {
              *  the other individual that were chosen.
              */
             void modifyWorstIndividual(
-                    Population &population,
-                    const qreal &currentSuccess);
+                    Population& population,
+                    double currentSuccess);
 
 
             /*!
@@ -512,15 +508,11 @@ namespace Winzent {
              * \return The best individual
              */
             detail::REvolResult run(
-                    const detail::Individual &origin,
-                    const Evaluator &succeeds);
+                    detail::Individual const& origin,
+                    Evaluator const& succeeds);
 
 
         private:
-
-
-            //! Our logger
-            log4cxx::LoggerPtr logger;
 
 
             //! The maximum number of iterations this alorithm runs
@@ -543,26 +535,26 @@ namespace Winzent {
 
 
             //! \brief Weight of implicit gradient information.
-            qreal m_gradientWeight;
+            double m_gradientWeight;
 
 
             //! \brief Weight of the reproduction success rate
-            qreal m_successWeight;
+            double m_successWeight;
 
 
             /*!
              * \brief Smallest absolute delta; typically the smallest number
              *  we can store
              */
-            qreal m_eamin;
+            double m_eamin;
 
 
             //! \brief Smallest relative delta
-            qreal m_ebmin;
+            double m_ebmin;
 
 
             //! \brief The biggest relative change
-            qreal m_ebmax;
+            double m_ebmax;
 
 
             //! \brief Initial Time-To-Live for new individuals
@@ -577,7 +569,7 @@ namespace Winzent {
              * \brief Target value on which the population has reached
              *  equilibrium
              */
-            qreal m_targetSuccess;
+            double m_targetSuccess;
 
 
             /*!
@@ -590,7 +582,7 @@ namespace Winzent {
              * \brief A uniform distribution `[0; 1)` from which we draw
              *  random numbers
              */
-            boost::random::uniform_01<qreal> m_uniformDistribution;
+            boost::random::uniform_01<double> m_uniformDistribution;
 
 
             //! The uniform integer distribution used to select individuals
@@ -607,8 +599,7 @@ namespace Winzent {
              *
              * \return The corrected delta X
              */
-            qreal clamp(const qreal &dx, const qreal &parameter)
-                    const;
+            double clamp(double dx, double parameter) const;
 
 
             /*!
@@ -623,15 +614,15 @@ namespace Winzent {
 
 
 namespace std {
-    ostream &operator<<(
+    ostream& operator<<(
+            ostream& os,
+            Winzent::Algorithm::detail::Individual const& individual);
+    ostream& operator<<(
             ostream &os,
-            const Winzent::Algorithm::detail::Individual &individual);
-    ostream &operator<<(
-            ostream &os,
-            const Winzent::Algorithm::REvol::Population &v);
-    ostream &operator<<(
-            ostream &os,
-            const Winzent::Algorithm::REvol &algorithm);
+            Winzent::Algorithm::REvol::Population const& v);
+    ostream& operator<<(
+            ostream& os,
+            Winzent::Algorithm::REvol const& algorithm);
 }
 
 #endif // WINZENT_ALGORITHM_REVOL_H_

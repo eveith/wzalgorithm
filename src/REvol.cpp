@@ -1,16 +1,10 @@
-#include <limits>
 #include <cfenv>
 #include <cmath>
+#include <limits>
+#include <cassert>
 #include <cstdlib>
 #include <algorithm>
 #include <functional>
-
-#include <QPair>
-#include <QList>
-#include <QVector>
-
-#include <log4cxx/logger.h>
-#include <log4cxx/logmanager.h>
 
 #include <boost/random.hpp>
 #include <boost/ptr_container/ptr_vector.hpp>
@@ -32,7 +26,7 @@ namespace Winzent {
         }
 
 
-        detail::Individual::Individual(const detail::Individual &other):
+        detail::Individual::Individual(detail::Individual const& other):
                 parameters(other.parameters),
                 scatter(other.scatter),
                 timeToLive(other.timeToLive),
@@ -41,7 +35,7 @@ namespace Winzent {
         }
 
 
-        detail::Individual::Individual(const detail::Individual &&other):
+        detail::Individual::Individual(detail::Individual&& other):
                 parameters(std::move(other.parameters)),
                 scatter(std::move(other.scatter)),
                 timeToLive(std::move(other.timeToLive)),
@@ -50,7 +44,7 @@ namespace Winzent {
         }
 
 
-        detail::Individual &detail::Individual::age()
+        detail::Individual& detail::Individual::age()
         {
             timeToLive -= 1;
             return *this;
@@ -58,7 +52,7 @@ namespace Winzent {
 
 
         bool detail::Individual::isBetterThan(
-                const detail::Individual &other)
+                detail::Individual const& other)
                 const
         {
             if (this->timeToLive < 0 && other.timeToLive >= 0) {
@@ -113,7 +107,7 @@ namespace Winzent {
         }
 
 
-        bool detail::Individual::operator ==(const detail::Individual &other)
+        bool detail::Individual::operator ==(detail::Individual const& other)
                 const
         {
                 return (other.timeToLive == this->timeToLive
@@ -123,15 +117,15 @@ namespace Winzent {
         }
 
 
-        bool detail::Individual::operator !=(const detail::Individual &other)
+        bool detail::Individual::operator !=(detail::Individual const& other)
                 const
         {
             return !(*this == other);
         }
 
 
-        detail::Individual &detail::Individual::operator =(
-                const detail::Individual &other)
+        detail::Individual& detail::Individual::operator =(
+                detail::Individual const& other)
         {
             if (this == &other) {
                 return *this;
@@ -146,14 +140,14 @@ namespace Winzent {
         }
 
 
-        bool detail::Individual::operator <(const detail::Individual &other)
+        bool detail::Individual::operator <(detail::Individual const& other)
                 const
         {
             return this->isBetterThan(other);
         }
 
 
-        qreal REvol::pt1(const qreal &y, const qreal &u, const qreal &t)
+        double REvol::pt1(double y, double u, double t)
         {
             if (t + 1.0 != 1.0) {
                 return y + ((u - y) / t);
@@ -163,29 +157,27 @@ namespace Winzent {
         }
 
 
-        void REvol::agePopulation(Population &population)
+        void REvol::agePopulation(Population& population)
         {
-            for (auto &i: population) {
+            for (auto& i: population) {
                 i.age();
             }
         }
 
 
-        qreal REvol::frandom()
+        double REvol::frandom()
         {
             return m_uniformDistribution(m_randomNumberGenerator);
         }
 
 
         REvol::REvol():
-                logger(log4cxx::LogManager::getLogger(
-                    "Winzent.Algorithm.REvol")),
                 m_maxNoSuccessEpochs(std::numeric_limits<size_t>::max()),
                 m_populationSize(0),
                 m_eliteSize(0),
                 m_gradientWeight(1.0),
                 m_successWeight(1.0),
-                m_eamin(std::numeric_limits<qreal>::min()),
+                m_eamin(std::numeric_limits<double>::min()),
                 m_ebmin(1e-12),
                 m_ebmax(1e-1),
                 m_startTTL(0),
@@ -202,7 +194,7 @@ namespace Winzent {
         }
 
 
-        REvol &REvol::maxEpochs(const std::size_t &epochs)
+        REvol& REvol::maxEpochs(std::size_t epochs)
         {
             m_maxEpochs = epochs;
             return *this;
@@ -214,7 +206,7 @@ namespace Winzent {
         }
 
 
-        REvol &REvol::maxNoSuccessEpochs(const std::size_t &epochs)
+        REvol& REvol::maxNoSuccessEpochs(std::size_t epochs)
         {
             m_maxNoSuccessEpochs = epochs;
             return *this;
@@ -227,7 +219,7 @@ namespace Winzent {
         }
 
 
-        REvol &REvol::populationSize(const std::size_t &size)
+        REvol& REvol::populationSize(size_t size)
         {
             m_populationSize = size;
 
@@ -249,85 +241,85 @@ namespace Winzent {
         }
 
 
-        REvol &REvol::eliteSize(const std::size_t &size)
+        REvol& REvol::eliteSize(size_t size)
         {
             m_eliteSize = size;
             return *this;
         }
 
 
-        qreal REvol::gradientWeight() const
+        double REvol::gradientWeight() const
         {
             return m_gradientWeight;
         }
 
 
-        REvol &REvol::gradientWeight(const qreal &weight)
+        REvol& REvol::gradientWeight(double weight)
         {
             m_gradientWeight = weight;
             return *this;
         }
 
 
-        qreal REvol::successWeight() const
+        double REvol::successWeight() const
         {
             return m_successWeight;
         }
 
 
-        REvol &REvol::successWeight(const qreal &weight)
+        REvol& REvol::successWeight(double weight)
         {
             m_successWeight = weight;
             return *this;
         }
 
 
-        qreal REvol::targetSuccess() const
+        double REvol::targetSuccess() const
         {
             return m_targetSuccess;
         }
 
 
-        REvol &REvol::targetSuccess(const qreal &targetSuccess)
+        REvol& REvol::targetSuccess(double targetSuccess)
         {
             m_targetSuccess = targetSuccess;
             return *this;
         }
 
 
-        qreal REvol::eamin() const
+        double REvol::eamin() const
         {
             return m_eamin;
         }
 
 
-        REvol &REvol::eamin(const qreal &eamin)
+        REvol& REvol::eamin(double eamin)
         {
             m_eamin = eamin;
             return *this;
         }
 
 
-        qreal REvol::ebmin() const
+        double REvol::ebmin() const
         {
             return m_ebmin;
         }
 
 
-        REvol &REvol::ebmin(const qreal &ebmin)
+        REvol& REvol::ebmin(double ebmin)
         {
             m_ebmin = ebmin;
             return *this;
         }
 
 
-        qreal REvol::ebmax() const
+        double REvol::ebmax() const
         {
             return m_ebmax;
         }
 
 
-        REvol &REvol::ebmax(const qreal &ebmax)
+        REvol& REvol::ebmax(double ebmax)
         {
             m_ebmax = ebmax;
             return *this;
@@ -340,7 +332,7 @@ namespace Winzent {
         }
 
 
-        REvol &REvol::startTTL(const std::ptrdiff_t &ttl)
+        REvol& REvol::startTTL(std::ptrdiff_t ttl)
         {
             m_startTTL = ttl;
             return *this;
@@ -353,41 +345,37 @@ namespace Winzent {
         }
 
 
-        REvol &REvol::measurementEpochs(const std::size_t &epochs)
+        REvol& REvol::measurementEpochs(size_t epochs)
         {
             m_measurementEpochs = epochs;
             return *this;
         }
 
 
-        qreal REvol::clamp(const qreal &dx, const qreal &parameter) const
+        double REvol::clamp(double dx, double parameter) const
         {
-            qreal cdx = dx;
-
             if (std::fetestexcept(FE_UNDERFLOW)) {
-                LOG4CXX_DEBUG(logger, "Underflow detected");
-                cdx = eamin();
+                dx = eamin();
             }
 
             if (std::fetestexcept(FE_OVERFLOW)) {
-                LOG4CXX_DEBUG(logger, "Overflow detected");
-                cdx = ebmax() * fabs(parameter);
+                dx = ebmax() * fabs(parameter);
             }
 
-            if (cdx < ebmin() * fabs(parameter)) {
-                cdx = ebmin() * fabs(parameter);
+            if (dx < ebmin() * fabs(parameter)) {
+                dx = ebmin() * fabs(parameter);
             }
 
-            if (cdx > ebmax() * fabs(parameter)) {
-                cdx = ebmax() * fabs(parameter);
+            if (dx > ebmax() * fabs(parameter)) {
+                dx = ebmax() * fabs(parameter);
             }
 
-            if (cdx < eamin()) {
-                cdx = eamin();
+            if (dx < eamin()) {
+                dx = eamin();
             }
 
             std::feclearexcept(FE_ALL_EXCEPT);
-            return cdx;
+            return dx;
         }
 
 
@@ -396,32 +384,22 @@ namespace Winzent {
             bool ok = true;
 
             if (0 >= populationSize()) {
-                LOG4CXX_ERROR(logger, "Population size is 0");
                 ok = false;
             }
 
             if (0 >= eliteSize()) {
-                LOG4CXX_ERROR(logger, "Elite size is 0");
                 ok = false;
             }
 
             if (eliteSize() >= populationSize()) {
-                LOG4CXX_ERROR(
-                        logger,
-                        "Elite is bigger or equal to population");
                 ok = false;
             }
 
             if (startTTL() <= 0) {
-                LOG4CXX_ERROR(logger, "No sensible start TTL (<= 0)");
                 ok = false;
             }
 
             if (0 >= measurementEpochs()) {
-                LOG4CXX_ERROR(
-                        logger,
-                        "Invalid number of epochs for measurement,"
-                            "must be > 0");
                 ok = false;
             }
 
@@ -432,7 +410,7 @@ namespace Winzent {
         REvol::Population REvol::generateInitialPopulation(
                 const detail::Individual &origin)
         {
-            Q_ASSERT(origin.parameters.size() == origin.scatter.size());
+            assert(origin.parameters.size() == origin.scatter.size());
 
             Population population;
             population.reserve(populationSize() + 1);
@@ -444,7 +422,7 @@ namespace Winzent {
             auto baseIndividual = new detail::Individual(origin);
             baseIndividual->timeToLive = startTTL();
             baseIndividual->restrictions.push_back(
-                    std::numeric_limits<qreal>::max());
+                    std::numeric_limits<double>::max());
             population.push_back(baseIndividual);
 
 
@@ -454,10 +432,10 @@ namespace Winzent {
                 individual->parameters.reserve(numParameters);
                 individual->scatter.reserve(numParameters);
                 individual->restrictions.push_back(
-                        numeric_limits<qreal>::max());
+                        numeric_limits<double>::max());
 
-                for (auto j = 0; j != numParameters; ++j) {
-                    qreal r = origin.scatter.at(j)
+                for (size_t j = 0; j != numParameters; ++j) {
+                    double r = origin.scatter.at(j)
                             * exp(0.4 * (0.5 - frandom()));
                     individual->scatter.push_back(r);
                     individual->parameters.push_back(
@@ -469,16 +447,16 @@ namespace Winzent {
             }
 
 
-            Q_ASSERT(population.size() == populationSize() + 1);
-            return std::move(population);
+            assert(population.size() == populationSize() + 1);
+            return population;
         }
 
 
         void REvol::modifyWorstIndividual(
-                Population &population,
-                const qreal &currentSuccess)
+                Population& population,
+                double currentSuccess)
         {
-            Q_ASSERT(population.size() >= 3);
+            assert(population.size() >= 3);
 
             // Select proper individuals:
 
@@ -501,10 +479,10 @@ namespace Winzent {
 
             // Determine influence of current success rate and gradient:
 
-            qreal xlp = 0.0;
-            qreal successRate = currentSuccess / targetSuccess() - 1.0;
+            double xlp = 0.0;
+            double successRate = currentSuccess / targetSuccess() - 1.0;
             int gradientSwitch = m_rnDistribution(m_randomNumberGenerator)%3;
-            qreal expvar = exp(frandom() - frandom());
+            double expvar = exp(frandom() - frandom());
 
             if (2 == gradientSwitch) {
                 xlp = (frandom() + frandom() + frandom() + frandom()
@@ -524,13 +502,13 @@ namespace Winzent {
 
             auto numParameters = eliteIndividual.parameters.size();
 
-            Q_ASSERT(numParameters == eliteIndividual.parameters.size());
-            Q_ASSERT(numParameters == otherIndividual.parameters.size());
+            assert(numParameters == eliteIndividual.parameters.size());
+            assert(numParameters == otherIndividual.parameters.size());
 
             for (auto i = 0; i != numParameters; ++i) {
                 std::feclearexcept(FE_ALL_EXCEPT);
 
-                qreal dx = eliteIndividual.scatter.at(i) * exp(
+                double dx = eliteIndividual.scatter.at(i) * exp(
                         successWeight() * successRate);
                 dx = clamp(dx, eliteIndividual.parameters.at(i));
 
@@ -574,9 +552,7 @@ namespace Winzent {
             }
 
             individual.timeToLive = startTTL();
-            individual.restrictions[0] = numeric_limits<qreal>::max();
-
-            LOG4CXX_DEBUG(logger, "Modified " << individual);
+            individual.restrictions[0] = numeric_limits<double>::max();
         }
 
 
@@ -593,10 +569,8 @@ namespace Winzent {
             }
 
             if (!hasSensibleTrainingParameters()) {
-                LOG4CXX_ERROR(
-                        logger,
-                        "Training parameters have no sensible values, "
-                            "won't train.");
+                throw "Training parameters have no sensible values, "
+                            "won't train.";
                 return { origin, 0 };
             }
 
@@ -604,7 +578,7 @@ namespace Winzent {
             size_t epoch       = 0;
             auto currentSuccess= targetSuccess();
             Population population = generateInitialPopulation(origin);
-            detail::Individual *bestIndividual = &(population.front());
+            detail::Individual* bestIndividual = &(population.front());
 
             do {
                 // Modify the worst individual:
@@ -663,30 +637,9 @@ namespace Winzent {
                         currentSuccess,
                         0.0,
                         measurementEpochs());
-
-                LOG4CXX_DEBUG(
-                        logger,
-                        "Iteration(epoch = " << epoch
-                            << ", maxEpochs = " << maxEpochs()
-                            << ", success = " << currentSuccess
-                            << ", targetSuccess = " << targetSuccess()
-                            << ", lastSuccess = " << lastSuccess
-                            << ", maxNoSuccessEpochs = "
-                                << maxNoSuccessEpochs()
-                            << ", population = " << population
-                            << ")");
-
                 epoch += 1;
             } while (epoch < maxEpochs()
                     && epoch - lastSuccess <= maxNoSuccessEpochs());
-
-            LOG4CXX_DEBUG(
-                    logger,
-                    "Training ended after "
-                        << epoch
-                        << " epochs; "
-                        << "winner: "
-                        << *bestIndividual);
 
             detail::REvolResult result = { *bestIndividual, epoch };
             return result;

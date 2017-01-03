@@ -1,39 +1,42 @@
-project(Winzent)
 cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
-
-set(WINZENT_VERSION_MAJOR 0)
-set(WINZENT_VERSION_MINOR 6)
-set(WINZENT_VERSION_PATCH 0)
-set(WINZENT_VERSION
-    "${WINZENT_VERSION_MAJOR}.${WINZENT_VERSION_MINOR}.${WINZENT_VERSION_PATCH}")
+project(wzalgorithm VERSION 0.7.0 LANGUAGES CXX)
 
 
-include(CTest)
-include(FindPkgConfig)
 include(GNUInstallDirs)
 
 
-configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/winzent.spec.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/winzent.spec")
+find_package(GTest)
+find_package(Boost 1.58.0 REQUIRED COMPONENTS random)
+
 
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/VERSION.in"
     "${CMAKE_CURRENT_BINARY_DIR}/VERSION")
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/src/config.h")
+
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/src")
 
 
 add_custom_target(srctar
     COMMAND tar
         "-C" "${CMAKE_CURRENT_SOURCE_DIR}"
-        "-vcJf" "winzent-${WINZENT_VERSION}.tar.xz"
-        "--xform='s,^,winzent-${WINZENT_VERSION}/,'"
+        "-vcJf" "wzalgorithm-${WZALGORITHM_VERSION}.tar.xz"
+        "--xform='s,^,wzalgorithm-${WZALGORITHM_VERSION}/,'"
         "--exclude-vcs" "--exclude-backups"
-        "--exclude=Makefile" "--exclude=src/flavormap" "--exclude='*.so*'"
+        "--exclude=Makefile" "--exclude='*.so*'"
         "src" "test" "CMakeLists.txt"
-        "README" "COPYING" "VERSION.in" "winzent.spec.in")
+        "README" "COPYING" "VERSION.in" "wzalgorithm.spec.in")
 
 
 add_subdirectory(src)
-add_subdirectory(doc)
-add_subdirectory(test)
-add_subdirectory(experiment)
+
+if (${GTEST_FOUND})
+    include(CTest)
+    enable_testing()
+    add_subdirectory(test)
+else()
+    message(AUTHOR_WARNING,
+        "GTest was not found; no unit tests will be available and `make check' will not work.")
+endif()

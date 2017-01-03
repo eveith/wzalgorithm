@@ -1,11 +1,6 @@
 #include <cmath>
 
-#include <QtTest>
-#include <QObject>
-#include <QVector>
-
-#include "Testcase.h"
-#include "TestcaseManager.h"
+#include <gtest/gtest.h>
 
 #include "REvol.h"
 #include "REvolTest.h"
@@ -20,7 +15,7 @@ using Winzent::Algorithm::REvol;
 using Winzent::Algorithm::detail::Individual;
 
 
-qreal REvolTest::peaks(const qreal &x, const qreal &y)
+double REvolTest::peaks(double x, double y)
 {
     return 3.0 * pow(1.0 - x, 2) * exp(-pow(x, 2) - pow(y + 1.0, 2))
             - 10.0 * (x / 5.0 - pow(x, 3) - pow(y, 5))
@@ -29,11 +24,11 @@ qreal REvolTest::peaks(const qreal &x, const qreal &y)
 }
 
 
-qreal REvolTest::ackley(const qreal &x, const qreal &y)
+double REvolTest::ackley(double x, double y)
 {
-    static qreal a = 20.0;
-    static qreal b = 0.2;
-    static qreal c = 2.0 * M_PI;
+    static double a = 20.0;
+    static double b = 0.2;
+    static double c = 2.0 * M_PI;
     return -a * exp(-b * sqrt(0.5 * (pow(x, 2.0) + pow(y, 2.0))))
             - exp(0.5 * (cos(c*x) + cos(c*y)))
             + a
@@ -41,12 +36,7 @@ qreal REvolTest::ackley(const qreal &x, const qreal &y)
 }
 
 
-REvolTest::REvolTest(QObject *parent): Testcase(parent)
-{
-}
-
-
-void REvolTest::testPeaks()
+TEST_F(REvolTest, testPeaks)
 {
     REvol revol;
     revol
@@ -66,7 +56,7 @@ void REvolTest::testPeaks()
 
     bool success = false;
     auto result = revol.run(i, [&success](Individual &i) {
-        qreal r = peaks(i.parameters[0], i.parameters[1]);
+        double r = peaks(i.parameters[0], i.parameters[1]);
 
         // Round to see dynamic probability spread in action:
 
@@ -74,19 +64,19 @@ void REvolTest::testPeaks()
         r = ceil(r);
         r /= pow(10, 2);
 
-        i.restrictions.push_front(r);
         i.restrictions.resize(1);
+        i.restrictions[0] = r;
 
         success |= (i.restrictions[0] <= -6.0);
         return success;
     });
 
-    QVERIFY(success);
-    QVERIFY(result.bestIndividual.restrictions[0] < -6.0);
+    ASSERT_TRUE(success);
+    ASSERT_TRUE(result.bestIndividual.restrictions[0] < -6.0);
 }
 
 
-void REvolTest::testAckley()
+TEST_F(REvolTest, testAckley)
 {
     REvol revol;
     revol
@@ -105,53 +95,55 @@ void REvolTest::testAckley()
     i.scatter = { 10.0, 10.0 };
 
     bool success = false;
-    auto result = revol.run(i, [&success](Individual &i) {
-        qreal r = ackley(i.parameters[0], i.parameters[1]);
+    auto result = revol.run(i, [&success](Individual& i) {
+        double r = ackley(i.parameters[0], i.parameters[1]);
         i.restrictions[0] = r;
 
         success |= (i.restrictions[0] + 1.0 < 1.0000000001);
         return success;
     });
 
-    QCOMPARE(1.0 + ackley(0.0, 0.0), 1.0);
-    QVERIFY(success);
-    QVERIFY(result.bestIndividual.restrictions[0] + 1.0 < 1.000000001);
+    ASSERT_NEAR(ackley(0.0, 0.0), 0.0, 1e-6);
+    ASSERT_TRUE(success);
+    ASSERT_TRUE(result.bestIndividual.restrictions[0] + 1.0 < 1.000000001);
 }
 
 
 
-void REvolTest::testCompareIndividuals()
+TEST_F(REvolTest, testCompareIndividuals)
 {
     Individual i1, i2;
 
-    QVERIFY(! i1.isBetterThan(i2));
+    ASSERT_TRUE(! i1.isBetterThan(i2));
 
     i2.timeToLive = 1;
-    QVERIFY(! i1.isBetterThan(i2));
+    ASSERT_TRUE(! i1.isBetterThan(i2));
 
     i1.age();
-    QVERIFY(i2.isBetterThan(i1));
+    ASSERT_TRUE(i2.isBetterThan(i1));
 
     i1.timeToLive = 1;
     i2.timeToLive = 1;
 
-    i1.restrictions << 1.0;
-    QVERIFY(! i1.isBetterThan(i2));
+    i1.restrictions.push_back(1.0);
+    ASSERT_FALSE(i1.isBetterThan(i2));
 
-    i2.restrictions << 1.0;
-    QVERIFY(!i1.isBetterThan(i2));
+    i2.restrictions.push_back(1.0);
+    ASSERT_FALSE(i1.isBetterThan(i2));
 
     i1.restrictions[0] = 5.0;
-    QVERIFY(! i1.isBetterThan(i2));
+    ASSERT_FALSE(i1.isBetterThan(i2));
 
     i1.restrictions[0] = i2.restrictions[0];
-    i1.restrictions << 1.0 << 2.0;
-    i2.restrictions << 1.0 << 1.0;
-    QVERIFY(i2.isBetterThan(i1));
+    i1.restrictions.push_back(1.0);
+    i1.restrictions.push_back(2.0);
+    i2.restrictions.push_back(1.0);
+    i2.restrictions.push_back(1.0);
+    ASSERT_TRUE(i2.isBetterThan(i1));
 }
 
 
-void REvolTest::testSortPopulation()
+TEST_F(REvolTest, testSortPopulation)
 {
     auto i1 = new Individual(),
             i2 = new Individual(),
@@ -166,19 +158,16 @@ void REvolTest::testSortPopulation()
     i3->timeToLive = 2;
     i3->restrictions.push_back(0.5);
 
-    QVERIFY(i1->isBetterThan(*i2));
+    ASSERT_TRUE(i1->isBetterThan(*i2));
 
     Winzent::Algorithm::REvol::Population population;
     population.push_back(i2);
     population.push_back(i1);
     population.push_back(i3);
 
-    QCOMPARE(population.front(), *i2);
+    ASSERT_EQ(population.front(), *i2);
     population.sort();
-    QCOMPARE(population.at(0), *i1);
-    QCOMPARE(population.at(1), *i2);
-    QCOMPARE(population.at(2), *i3);
+    ASSERT_EQ(population.at(0), *i1);
+    ASSERT_EQ(population.at(1), *i2);
+    ASSERT_EQ(population.at(2), *i3);
 }
-
-
-REGISTER_TESTCASE(REvolTest);

@@ -7,16 +7,9 @@
 #include <ostream>
 #include <functional>
 
-#include <QList>
-#include <QVector>
-
 #include <boost/random.hpp>
 
-#include <log4cxx/logger.h>
-
-#include "QtContainerOutput.h"
-
-#include "algorithm_global.h"
+#include "config.h"
 
 
 namespace Winzent {
@@ -42,11 +35,11 @@ namespace Winzent {
             struct Particle
             {
                 //! The vector type used here.
-                typedef QVector<qreal> Vector;
+                typedef Winzent::Algorithm::vector_t Vector;
 
 
                 //! The best fitness this particle ever obtained
-                qreal bestFitness;
+                double bestFitness;
 
 
                 /*!
@@ -54,7 +47,7 @@ namespace Winzent {
                  *  the result of applying the objective function to the
                  *  current position
                  */
-                qreal currentFitness;
+                double currentFitness;
 
 
                 //! The best position, i.e., the source of the #bestFitness
@@ -76,13 +69,13 @@ namespace Winzent {
                  * \brief The smaller-than operator, applied to the particle's
                  *  fitness.
                  */
-                bool operator <(const Particle &rhs) const {
+                bool operator <(Particle const& rhs) const {
                     return bestFitness < rhs.bestFitness;
                 }
             };
 
 
-            struct ALGORTHMSHARED_EXPORT ParticleSwarmOptimizationResult
+            struct ParticleSwarmOptimizationResult
             {
                 //! The best particle
                 Particle bestParticle;
@@ -93,7 +86,7 @@ namespace Winzent {
         }
 
 
-        class ALGORTHMSHARED_EXPORT ParticleSwarmOptimization
+        class ParticleSwarmOptimization
         {
         public:
 
@@ -103,11 +96,11 @@ namespace Winzent {
 
 
             //! The contant C, ~1.193
-            static const qreal C;
+            static const double C;
 
 
             //! The contant W, ~0.721
-            static const qreal W;
+            static const double W;
 
 
             /*!
@@ -130,11 +123,11 @@ namespace Winzent {
              *
              * \sa #run()
              */
-            typedef std::function<bool(detail::Particle &)> Evaluator;
+            typedef std::function<bool(detail::Particle&)> Evaluator;
 
 
             //! The Swarm data type
-            typedef QVector<detail::Particle> Swarm;
+            typedef std::vector<detail::Particle> Swarm;
 
 
             //! Three neighbors to a particle
@@ -144,7 +137,7 @@ namespace Winzent {
             /*!
              * \brief A particle neighborhood
              */
-            typedef QList<const detail::Particle *> Neighborhood;
+            typedef std::vector<detail::Particle const*> Neighborhood;
 
 
             ParticleSwarmOptimization();
@@ -167,7 +160,7 @@ namespace Winzent {
              *
              * \return `*this`
              */
-            ParticleSwarmOptimization &swarmSize(const size_t &size);
+            ParticleSwarmOptimization &swarmSize(size_t size);
 
 
             /*!
@@ -187,8 +180,7 @@ namespace Winzent {
              *
              * \return `*this`
              */
-            ParticleSwarmOptimization &maxIterations(
-                    const size_t &iterations);
+            ParticleSwarmOptimization &maxIterations(size_t iterations);
 
 
             /*!
@@ -196,7 +188,7 @@ namespace Winzent {
              *
              * \return The lower boundary
              */
-            qreal lowerBoundary() const;
+            double lowerBoundary() const;
 
 
             /*!
@@ -206,7 +198,7 @@ namespace Winzent {
              *
              * \return `*this`
              */
-            ParticleSwarmOptimization &lowerBoundary(const qreal &boundary);
+            ParticleSwarmOptimization& lowerBoundary(double boundary);
 
 
             /*!
@@ -214,7 +206,7 @@ namespace Winzent {
              *
              * \return The upper boundary
              */
-            qreal upperBoundary() const;
+            double upperBoundary() const;
 
 
             /*!
@@ -224,7 +216,7 @@ namespace Winzent {
              *
              * \return `*this`
              */
-            ParticleSwarmOptimization &upperBoundary(const qreal &boundary);
+            ParticleSwarmOptimization& upperBoundary(double boundary);
 
 
             /*!
@@ -238,9 +230,7 @@ namespace Winzent {
              *
              * \return The indices of the particle's neighbors
              */
-            NeighborIndices neighbors(
-                    const size_t &particleIndex,
-                    const size_t &swarmSize)
+            NeighborIndices neighbors(size_t particleIndex, size_t swarmSize)
                     const;
 
 
@@ -254,8 +244,7 @@ namespace Winzent {
              *
              * \sa #neighbors()
              */
-            QVector<qreal> bestPreviousBestPosition(
-                    const Neighborhood &neighborhood)
+            vector_t bestPreviousBestPosition(Neighborhood const& neighborhood)
                     const;
 
 
@@ -272,9 +261,7 @@ namespace Winzent {
              *
              * \sa Evaluator
              */
-            Swarm createSwarm(
-                    const size_t &dimension,
-                    const Evaluator &evaluator);
+            Swarm createSwarm(size_t dimension, Evaluator const& evaluator);
 
 
             /*!
@@ -290,15 +277,11 @@ namespace Winzent {
              * \sa Evaluator
              */
             detail::ParticleSwarmOptimizationResult run(
-                    const size_t &dimension,
-                    const Evaluator &evaluator);
+                    size_t dimension,
+                    Evaluator const& evaluator);
 
 
         private:
-
-
-            //! Internal logger
-            log4cxx::LoggerPtr logger;
 
 
             //! The size of the swarm
@@ -310,11 +293,11 @@ namespace Winzent {
 
 
             //! The lower boundary of the search space
-            qreal m_lowerBoundary;
+            double m_lowerBoundary;
 
 
             //! The upper boundary of the search space
-            qreal m_upperBoundary;
+            double m_upperBoundary;
 
 
             //! Our RNG
@@ -322,16 +305,16 @@ namespace Winzent {
 
 
             //! A uniform distribution for the RNG, [0;1)
-            boost::random::uniform_01<qreal> m_uniformDistribution;
+            boost::random::uniform_01<double> m_uniformDistribution;
         };
     } // namespace Algorithm
 } // namespace Winzent
 
 
 namespace std {
-    ostream &operator <<(
-            ostream &os,
-            const Winzent::Algorithm::detail::Particle &particle)
+    static ostream& operator <<(
+            ostream& os,
+            Winzent::Algorithm::detail::Particle const& particle)
     {
         os
                 << "Particle("
@@ -345,13 +328,14 @@ namespace std {
         return os;
     }
 
-    ostream &operator <<(
-            ostream &os,
-            const Winzent::Algorithm::ParticleSwarmOptimization::Swarm &swarm)
+
+    static ostream& operator <<(
+            ostream& os,
+            Winzent::Algorithm::ParticleSwarmOptimization::Swarm const& swarm)
     {
         os << "Swarm(";
 
-        for (const auto &p: swarm) {
+        for (auto const& p: swarm) {
             os << p;
             if (&p != &(swarm.back())) {
                 os << ", ";

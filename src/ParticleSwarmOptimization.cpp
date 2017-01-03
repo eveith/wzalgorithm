@@ -4,13 +4,7 @@
 #include <cstddef>
 #include <functional>
 
-#include <QList>
-#include <QVector>
-
 #include <boost/random.hpp>
-
-#include <log4cxx/logger.h>
-#include <log4cxx/logmanager.h>
 
 #include "ParticleSwarmOptimization.h"
 
@@ -19,13 +13,11 @@ namespace Winzent {
     namespace Algorithm {
 
 
-        const qreal ParticleSwarmOptimization::C = 0.5 + std::log(2);
-        const qreal ParticleSwarmOptimization::W = 1.0 / (2.0 * std::log(2));
+        const double ParticleSwarmOptimization::C = 0.5 + std::log(2);
+        const double ParticleSwarmOptimization::W = 1.0 / (2.0 * std::log(2));
 
 
         ParticleSwarmOptimization::ParticleSwarmOptimization():
-                logger(log4cxx::LogManager::getLogger(
-                    "Winzent.Algorithm.ParticleSwarmOptimization")),
                 m_swarmSize(DEFAULT_SWARM_SIZE),
                 m_maxIterations(std::numeric_limits<size_t>::max()),
                 m_randomNumberGenerator(0xBEEFu)
@@ -39,8 +31,8 @@ namespace Winzent {
         }
 
 
-        ParticleSwarmOptimization &ParticleSwarmOptimization::swarmSize(
-                const size_t &size)
+        ParticleSwarmOptimization& ParticleSwarmOptimization::swarmSize(
+                size_t size)
         {
             m_swarmSize = size;
             return *this;
@@ -53,36 +45,36 @@ namespace Winzent {
         }
 
 
-        ParticleSwarmOptimization &ParticleSwarmOptimization::maxIterations(
-                const size_t &iterations)
+        ParticleSwarmOptimization& ParticleSwarmOptimization::maxIterations(
+                size_t iterations)
         {
             m_maxIterations = iterations;
             return *this;
         }
 
 
-        qreal ParticleSwarmOptimization::lowerBoundary() const
+        double ParticleSwarmOptimization::lowerBoundary() const
         {
             return m_lowerBoundary;
         }
 
 
-        ParticleSwarmOptimization &ParticleSwarmOptimization::lowerBoundary(
-                const qreal &boundary)
+        ParticleSwarmOptimization& ParticleSwarmOptimization::lowerBoundary(
+                double boundary)
         {
             m_lowerBoundary = boundary;
             return *this;
         }
 
 
-        qreal ParticleSwarmOptimization::upperBoundary() const
+        double ParticleSwarmOptimization::upperBoundary() const
         {
             return m_upperBoundary;
         }
 
 
-        ParticleSwarmOptimization &ParticleSwarmOptimization::upperBoundary(
-                const qreal &boundary)
+        ParticleSwarmOptimization& ParticleSwarmOptimization::upperBoundary(
+                double boundary)
         {
             m_upperBoundary = boundary;
             return *this;
@@ -92,8 +84,8 @@ namespace Winzent {
 
         ParticleSwarmOptimization::NeighborIndices
         ParticleSwarmOptimization::neighbors(
-                const size_t &particleIndex,
-                const size_t &swarmSize)
+                size_t particleIndex,
+                size_t swarmSize)
                 const
         {
             return std::make_tuple(
@@ -103,13 +95,13 @@ namespace Winzent {
         }
 
 
-        QVector<qreal> ParticleSwarmOptimization::bestPreviousBestPosition(
-                const ParticleSwarmOptimization::Neighborhood &neighborhood)
+        vector_t ParticleSwarmOptimization::bestPreviousBestPosition(
+                ParticleSwarmOptimization::Neighborhood const& neighborhood)
                 const
         {
             auto *best = neighborhood.front();
 
-            for (auto &particle: neighborhood) {
+            for (auto const& particle: neighborhood) {
                 if (particle->bestFitness < best->bestFitness) {
                     best = particle;
                 }
@@ -121,7 +113,7 @@ namespace Winzent {
 
         ParticleSwarmOptimization::Swarm
         ParticleSwarmOptimization::createSwarm(
-                const size_t &dimension,
+                size_t dimension,
                 const Evaluator &evaluator)
         {
             Swarm swarm;
@@ -130,10 +122,10 @@ namespace Winzent {
                 detail::Particle particle;
 
                 for (size_t d = 0; d != dimension; ++d) {
-                    qreal p = lowerBoundary()
+                    double p = lowerBoundary()
                             + m_uniformDistribution(m_randomNumberGenerator)
                                 * (upperBoundary() - lowerBoundary());
-                    qreal v = (lowerBoundary() - p)
+                    double v = (lowerBoundary() - p)
                             + m_uniformDistribution(m_randomNumberGenerator)
                                 * ((lowerBoundary() - p)
                                    - (upperBoundary() - p));
@@ -149,19 +141,17 @@ namespace Winzent {
                 swarm.push_back(particle);
             }
 
-            LOG4CXX_DEBUG(logger, "Created swarm: " << swarm);
-
             return swarm;
         }
 
 
         detail::ParticleSwarmOptimizationResult
         ParticleSwarmOptimization::run(
-                const size_t &dimension,
+                size_t dimension,
                 const Evaluator &evaluator)
         {
             Swarm swarm = createSwarm(dimension, evaluator);
-            detail::Particle *best;
+            detail::Particle* best;
 
             std::sort(swarm.begin(), swarm.end());
             best = &(swarm.front());
@@ -169,7 +159,7 @@ namespace Winzent {
             size_t i = 0;
 
             while (i < maxIterations() && ! success) {
-                for (int k = 0; k != swarm.size(); ++k) {
+                for (size_t k = 0; k != swarm.size(); ++k) {
                     auto &particle = swarm[k];
                     auto neighborIndices = neighbors(k, swarm.size());
                     auto bestNeighborhoodPosition = bestPreviousBestPosition({
@@ -181,18 +171,18 @@ namespace Winzent {
                             j != particle.currentPosition.size(); ++j) {
                         bool isBestInNeighborhood = (particle.bestPosition
                                 == bestNeighborhoodPosition);
-                        qreal v = particle.velocity[j];
-                        qreal x = particle.currentPosition[j];
-                        qreal p = particle.bestPosition[j];
-                        qreal l = bestNeighborhoodPosition[j];
-                        qreal g = (isBestInNeighborhood
+                        double v = particle.velocity[j];
+                        double x = particle.currentPosition[j];
+                        double p = particle.bestPosition[j];
+                        double l = bestNeighborhoodPosition[j];
+                        double g = (isBestInNeighborhood
                                 ? x + C * ((p - x) / 2.0)
                                 : x + C * ((p + l - 2.0 * x) / 3.0));
-                        qreal r = g + ((g-x)-g) * m_uniformDistribution(
+                        double r = g + ((g-x)-g) * m_uniformDistribution(
                                 m_randomNumberGenerator);
 
-                        qreal newV = W*v + r - x;
-                        qreal newX = W * particle.velocity[j] + r;
+                        double newV = W*v + r - x;
+                        double newX = W * particle.velocity[j] + r;
 
                         if (newX < lowerBoundary()) {
                             newX = lowerBoundary();
