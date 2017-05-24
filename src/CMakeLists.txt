@@ -31,7 +31,21 @@ set_target_properties(wzalgorithm
     CXX_STANDARD 14)
 
 
+SET(PKG_CONFIG_REQUIRES "Boost")
+SET(PKG_CONFIG_LIBDIR "\${prefix}/${CMAKE_INSTALL_LIBDIR}")
+SET(PKG_CONFIG_INCLUDEDIR "\${prefix}/include")
+SET(PKG_CONFIG_LIBS "-L\${libdir} ${wzalgorithm_LIBRARIES} -lwzalgorithm")
+SET(PKG_CONFIG_CFLAGS "-I\${includedir}")
+
+CONFIGURE_FILE(
+    ${CMAKE_CURRENT_SOURCE_DIR}/wzalgorithm.pc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/wzalgorithm.pc)
+
+
 install(TARGETS wzalgorithm
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(FILES ${wzalgorithm_HEADERS} DESTINATION include/winzent/algorithm)
+install(
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/wzalgorithm.pc
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
