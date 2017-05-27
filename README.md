@@ -8,6 +8,12 @@ Winzent project. Currently, these are:
   - Standard Particle Swarm Optimization (SPSO) 2011
   - The Multipart Evolutionary Strategy (REvol)
 
+REvol has been described in the following scientific publication:
+
+Ruppert, Martin, Eric MSP Veith, and Bernd Steinbach. "An Evolutionary
+Training Algorithm for Artificial Neural Networks with Dynamic Offspring
+Spread and Implicit Gradient Information."
+
 ## Installation
 
 wzAlgorithm uses CMake for building. It requires Boost.Random.
