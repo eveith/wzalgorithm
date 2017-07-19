@@ -3,10 +3,12 @@ project(wzalgorithm VERSION 0.7.0 LANGUAGES CXX)
 
 
 include(GNUInstallDirs)
+include(CheckIncludeFileCXX)
 
 
 find_package(GTest)
 find_package(Boost 1.58.0 REQUIRED COMPONENTS random)
+check_include_file_cxx("benchmark/benchmark.h" BENCHMARK_FOUND)
 
 
 configure_file(
