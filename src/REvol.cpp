@@ -71,7 +71,7 @@ namespace Winzent {
                     restrictions.size() > other.restrictions.size()
                     ? other.restrictions.size()
                     : this->restrictions.size());
-            for (auto i = 1; i < size; ++i) {
+            for (vector_t::size_type i = 1; i < size; ++i) {
                 if (this->restrictions.at(i) < other.restrictions.at(i)) {
                     return true;
                 } else {
@@ -460,9 +460,11 @@ namespace Winzent {
 
             // Select proper individuals:
 
-            Population::size_type eliteIdx = abs(
-                    (m_rnDistribution(m_randomNumberGenerator) % eliteSize())
-                        - (m_rnDistribution(m_randomNumberGenerator)
+            Population::size_type eliteIdx = abs(static_cast<long long>(
+                        m_rnDistribution(m_randomNumberGenerator)
+                            % eliteSize())
+                    - static_cast<long long>(
+                        m_rnDistribution(m_randomNumberGenerator)
                             % eliteSize()));
             Population::size_type otherIdx =
                     m_rnDistribution(m_randomNumberGenerator)
@@ -505,7 +507,7 @@ namespace Winzent {
             assert(numParameters == eliteIndividual.parameters.size());
             assert(numParameters == otherIndividual.parameters.size());
 
-            for (auto i = 0; i != numParameters; ++i) {
+            for (vector_t::size_type i = 0; i != numParameters; ++i) {
                 std::feclearexcept(FE_ALL_EXCEPT);
 
                 double dx = eliteIndividual.scatter.at(i) * exp(
@@ -658,7 +660,8 @@ namespace std {
         os << "TTL = " << individual.timeToLive << ", ";
 
         os << "Parameters = (";
-        for (int i = 0; i < individual.parameters.size(); ++i) {
+        for (Winzent::Algorithm::vector_t::size_type i = 0;
+                i < individual.parameters.size(); ++i) {
             os << individual.parameters.at(i);
             if (i < individual.parameters.size() - 1) {
                 os << ", ";
@@ -666,7 +669,8 @@ namespace std {
         }
 
         os << "), Scatter = (";
-        for (int i = 0; i < individual.scatter.size(); ++i) {
+        for (Winzent::Algorithm::vector_t::size_type i = 0;
+                i < individual.scatter.size(); ++i) {
             os << individual.scatter.at(i);
             if (i < individual.scatter.size() - 1) {
                 os << ", ";
@@ -674,7 +678,8 @@ namespace std {
         }
 
         os << "), Restrictions = (";
-        for (int i = 0; i < individual.restrictions.size(); ++i) {
+        for (Winzent::Algorithm::vector_t::size_type i = 0;
+                i < individual.restrictions.size(); ++i) {
             os << individual.restrictions.at(i);
             if (i < individual.restrictions.size() - 1) {
                 os << ", ";
@@ -710,7 +715,7 @@ namespace std {
             const Winzent::Algorithm::REvol::Population &v)
     {
         os << "(";
-        for (const auto &i: v) {
+        for (auto const& i: v) {
             os << i;
             if (&i != &(v.back())) {
                 os << ", ";
