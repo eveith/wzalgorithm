@@ -13,8 +13,8 @@ using std::pow;
 using std::sqrt;
 using std::accumulate;
 
-using Winzent::Algorithm::REvol;
-using Winzent::Algorithm::detail::Individual;
+using wzalgorithm::REvol;
+using wzalgorithm::detail::Individual;
 
 
 double REvolBenchmark::ackley(std::vector<double> const& x) const
@@ -61,7 +61,7 @@ BENCHMARK_F(REvolBenchmark, ackleyBenchmark)(benchmark::State& state)
             10.0, 10.0, 10., 10., 10., 10., 10., 10., 10., 10. };
 
         bool success = false;
-        auto result = revol.run(i, [this, &success](Individual& i) {
+        revol.run(i, [this, &success](Individual& i) {
             double r = this->ackley(i.parameters);
             i.restrictions[0] = r;
 

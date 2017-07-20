@@ -11,8 +11,8 @@ using std::exp;
 using std::cos;
 using std::sin;
 
-using Winzent::Algorithm::detail::Particle;
-using Winzent::Algorithm::ParticleSwarmOptimization;
+using wzalgorithm::detail::Particle;
+using wzalgorithm::ParticleSwarmOptimization;
 
 
 double ParticleSwarmOptimizationTest::peaks(double x, double y)

@@ -11,8 +11,8 @@ using std::exp;
 using std::cos;
 using std::sin;
 
-using Winzent::Algorithm::REvol;
-using Winzent::Algorithm::detail::Individual;
+using wzalgorithm::REvol;
+using wzalgorithm::detail::Individual;
 
 
 double REvolTest::peaks(double x, double y)
@@ -160,7 +160,7 @@ TEST_F(REvolTest, testSortPopulation)
 
     ASSERT_TRUE(i1->isBetterThan(*i2));
 
-    Winzent::Algorithm::REvol::Population population;
+    wzalgorithm::REvol::Population population;
     population.push_back(i2);
     population.push_back(i1);
     population.push_back(i3);

@@ -9,17 +9,15 @@
 #define WINZENT_ALGORITHM_VERSION "@PROJECT_VERSION@"
 
 
-namespace Winzent {
-    namespace Algorithm {
-        typedef std::vector<double> vector_t;
-    }
+namespace wzalgorithm {
+    typedef std::vector<double> vector_t;
 }
 
 
 namespace std {
     static ostream& operator <<(
             ostream& os,
-            Winzent::Algorithm::vector_t const& vec)
+            wzalgorithm::vector_t const& vec)
     {
         os << "(";
 
@@ -31,7 +29,7 @@ namespace std {
         os << ")";
         return os;
     }
-}
+} // namespace std
 
 
 #endif // WINZENT_ALGORITHM_CONFIG_H_
