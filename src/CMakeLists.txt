@@ -1,10 +1,12 @@
 set(wzalgorithm_SOURCES
     REvol.cpp
+    REvolT.cpp
     ParticleSwarmOptimization.cpp)
 
 set(wzalgorithm_HEADERS
     config.h
     REvol.h
+    REvolT.h
     ParticleSwarmOptimization.h)
 
 

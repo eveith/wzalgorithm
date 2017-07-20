@@ -1,19 +1,23 @@
 set(test-wzalgorithm_SOURCES
     REvolTest.cpp
+    REvolTTest.cpp
     ParticleSwarmOptimizationTest.cpp
     test_wzalgorithm.cpp)
 
 set(test-wzalgorithm_HEADERS
     REvolTest.h
+    REvolTTest.h
     ParticleSwarmOptimizationTest.h)
 
 
 set(benchmark-wzalgorithm_SOURCES
     REvolBenchmark.cpp
+    REvolTBenchmark.cpp
     benchmark_wzalgorithm.cpp)
 
 set(benchmark-wzalgorithm_HEADERS
-    REvolBenchmark.h)
+    REvolBenchmark.h
+    REvolTBenchmark.h)
 
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
