@@ -9,7 +9,7 @@
 
 
 template <typename T>
-double ackley(T const& x)
+static double ackley(T const& x)
 {
     static const double a = 20.0;
     static const double b = 0.2;

@@ -4,6 +4,8 @@ set(test-wzalgorithm_SOURCES
     test_wzalgorithm.cpp)
 
 set(test-wzalgorithm_HEADERS
+    peaks.h
+    ackley.h
     REvolTest.h
     ParticleSwarmOptimizationTest.h)
 
@@ -14,6 +16,8 @@ set(benchmark-wzalgorithm_SOURCES
     benchmark_wzalgorithm.cpp)
 
 set(benchmark-wzalgorithm_HEADERS
+    peaks.h
+    ackley.h
     REvolBenchmark.h
     ParticleSwarmOptimizationBenchmark.h)
 

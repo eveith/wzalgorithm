@@ -2,6 +2,9 @@
 
 #include <gtest/gtest.h>
 
+#include "peaks.h"
+#include "ackley.h"
+
 #include "REvol.h"
 #include "REvolTest.h"
 
@@ -15,33 +18,12 @@ using wzalgorithm::REvol;
 using Individual = wzalgorithm::REvol::Individual;
 
 
-double REvolTest::peaks(double x, double y)
-{
-    return 3.0 * pow(1.0 - x, 2) * exp(-pow(x, 2) - pow(y + 1.0, 2))
-            - 10.0 * (x / 5.0 - pow(x, 3) - pow(y, 5))
-            * exp(- pow(x, 2) - pow(y, 2))
-            - 1.0 / 3.0 * exp(- pow(x + 1.0, 2) - pow(y, 2));
-}
-
-
-double REvolTest::ackley(double x, double y)
-{
-    static double a = 20.0;
-    static double b = 0.2;
-    static double c = 2.0 * M_PI;
-    return -a * exp(-b * sqrt(0.5 * (pow(x, 2.0) + pow(y, 2.0))))
-            - exp(0.5 * (cos(c*x) + cos(c*y)))
-            + a
-            + exp(1.0);
-}
-
-
-TEST_F(REvolTest, testPeaks)
+TEST(REvolTest, testPeaks)
 {
     REvol revol;
     revol
             .ebmax(10.0)
-            .gradientWeight(1.8)
+            .gradientWeight(1.0)
             .populationSize(30)
             .eliteSize(3)
             .successWeight(1.0)
@@ -76,7 +58,7 @@ TEST_F(REvolTest, testPeaks)
 }
 
 
-TEST_F(REvolTest, testAckley)
+TEST(REvolTest, testAckley)
 {
     REvol revol;
     revol
@@ -96,21 +78,21 @@ TEST_F(REvolTest, testAckley)
 
     bool success = false;
     auto result = revol.run(i, [&success](Individual& i) {
-        double r = ackley(i.parameters[0], i.parameters[1]);
+        double r = ::ackley(i.parameters);
         i.restrictions[0] = r;
 
         success |= (i.restrictions[0] + 1.0 < 1.0000000001);
         return success;
     });
 
-    ASSERT_NEAR(ackley(0.0, 0.0), 0.0, 1e-6);
+    ASSERT_NEAR(ackley(wzalgorithm::vector_t{ 0.0, 0.0 }), 0.0, 1e-6);
     ASSERT_TRUE(success);
     ASSERT_TRUE(result.bestIndividual.restrictions[0] + 1.0 < 1.000000001);
 }
 
 
 
-TEST_F(REvolTest, testCompareIndividuals)
+TEST(REvolTest, testCompareIndividuals)
 {
     Individual i1, i2;
 
@@ -143,7 +125,7 @@ TEST_F(REvolTest, testCompareIndividuals)
 }
 
 
-TEST_F(REvolTest, testSortPopulation)
+TEST(REvolTest, testSortPopulation)
 {
     auto i1 = new Individual(),
             i2 = new Individual(),
