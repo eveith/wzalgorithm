@@ -149,11 +149,7 @@ namespace wzalgorithm {
 
     double REvol::pt1(double y, double u, double t)
     {
-        if (t + 1.0 != 1.0) {
-            return y + ((u - y) / t);
-        } else {
-            return u;
-        }
+        return (t + 1.0 != 1.0) ? (y + ((u - y) / t)) : u;
     }
 
 

@@ -1,4 +1,5 @@
 #include <cmath>
+#include <iostream>
 
 #include <gtest/gtest.h>
 
@@ -36,19 +37,31 @@ double REvolTTest::ackley(double x, double y)
 }
 
 
+TEST_F(REvolTTest, testCompartorStrictWeakOrdering)
+{
+    Individual* i1 = new Individual(), *i2 = new Individual();
+    REvolT::IndividualPtrComparator cpr;
+
+    i1->timeToLive = i2->timeToLive = 42;
+
+    ASSERT_EQ(*i1, *i2);
+    ASSERT_TRUE(!cpr(i1, i2) && !cpr(i2, i1));
+}
+
+
 TEST_F(REvolTTest, testPeaks)
 {
     REvolT revol;
     revol
-            .ebmax(1.0)
-            .gradientWeight(1.8)
-            .populationSize(30)
-            .eliteSize(3)
+            .ebmax(5.0)
+            .gradientWeight(1.0)
+            .populationSize(40)
+            .eliteSize(4)
             .successWeight(1.0)
             .measurementEpochs(500)
-            .startTTL(300)
-            .maxEpochs(5000)
-            .maxNoSuccessEpochs(4000);
+            .startTTL(100)
+            .maxEpochs(50000)
+            .maxNoSuccessEpochs(50000);
 
     Individual i;
     i.parameters = { 0.0, 0.0 };
@@ -58,16 +71,11 @@ TEST_F(REvolTTest, testPeaks)
     auto result = revol.run(i, [&success](Individual &i) {
         double r = peaks(i.parameters[0], i.parameters[1]);
 
-        // Round to see dynamic probability spread in action:
-
-        r *= pow(10, 2);
-        r = ceil(r);
-        r /= pow(10, 2);
-
         i.restrictions.resize(1);
         i.restrictions[0] = r;
 
-        success |= (i.restrictions[0] <= -6.0);
+        std::cout << r << "\n";
+        success |= i.restrictions[0] <= -6.0;
         return success;
     });
 
@@ -165,9 +173,11 @@ TEST_F(REvolTTest, testSortPopulation)
     population.push_back(i1);
     population.push_back(i3);
 
-    ASSERT_EQ(population.front(), *i2);
-    population.sort();
-    ASSERT_EQ(population.at(0), *i1);
-    ASSERT_EQ(population.at(1), *i2);
-    ASSERT_EQ(population.at(2), *i3);
+    ASSERT_EQ(*(population.front()), *i2);
+
+    REvolT::sort(population);
+
+    ASSERT_EQ(*(population.at(0)), *i1);
+    ASSERT_EQ(*(population.at(1)), *i2);
+    ASSERT_EQ(*(population.at(2)), *i3);
 }

@@ -44,14 +44,14 @@ BENCHMARK_F(REvolTBenchmark, ackleyBenchmark)(benchmark::State& state)
     while (state.KeepRunning()) {
         REvolT revol;
         revol
-                .ebmax(5.0)
+                .ebmax(1.0)
                 .gradientWeight(1.0)
-                .populationSize(33)
-                .eliteSize(3)
+                .populationSize(100)
+                .eliteSize(10)
                 .successWeight(1.2)
                 .measurementEpochs(500)
                 .startTTL(100)
-                .maxEpochs(5000)
+                .maxEpochs(50000)
                 .maxNoSuccessEpochs(5000);
 
         Individual i;

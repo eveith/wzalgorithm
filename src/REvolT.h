@@ -1,8 +1,11 @@
-#ifndef WINZENT_ALGORITHM_REVOLT_H_
-#define WINZENT_ALGORITHM_REVOLT_H_
+#ifndef WZALGORITHM_REVOLT_H_
+#define WZALGORITHM_REVOLT_H_
 
 
+#include <vector>
+#include <future>
 #include <cstddef>
+#include <ostream>
 #include <functional>
 
 #include <boost/random.hpp>
@@ -20,14 +23,40 @@ namespace wzalgorithm {
      *  implements a multi-part evolutionary algorithm with implicit
      *  gradient information and dynamic reproduction probabilty spread
      *  of the individuals.
+     *
+     * This is the multi-threaded version of REvol.
      */
     class REvolT
     {
     public:
 
 
+        struct IndividualPtrComparator
+        {
+            bool operator ()(
+                    detail::Individual* const a,
+                    detail::Individual* const b)
+            {
+                return *a < *b;
+            }
+        };
+
+
         //! Auto-deleting vector for the population
-        typedef boost::ptr_vector<detail::Individual> Population;
+        typedef std::vector<detail::Individual*> Population;
+
+
+        typedef std::pair<
+                Population::iterator, Population::iterator> PopulationRange;
+
+
+        //! \brief A population of futures, e.g., during evaluation
+        typedef std::vector<
+                std::future<
+                    detail::Individual*>> FuturePopulation;
+
+
+        typedef boost::random::mt11213b rng_t;
 
 
         /*!
@@ -38,16 +67,39 @@ namespace wzalgorithm {
         static void agePopulation(Population& population);
 
 
+        /*!
+         * \brief Sorts the population.
+         *
+         * \param[inout] population
+         */
+        static void sort(Population& population);
+
+
         //! Creates a new, un-initialized instance of this algorithm
         REvolT();
+
+
+        virtual ~REvolT();
 
 
         /*!
          * \brief Creates a random number in the interval [0.0, 1.0)
          *
+         * Uses the object attribute RNG.
+         *
          * \return A random number between 0.0 and 1.0 (exclusive)
          */
         double frandom();
+
+
+        /*!
+         * \brief Creates a random number in the interval [0.0, 1.0)
+         *
+         * \param rng The random number generator this method uses
+         *
+         * \return  A random number between 0.0 and 1.0 (exclusive)
+         */
+        double frandom(rng_t& rng);
 
 
         /*!
@@ -321,7 +373,12 @@ namespace wzalgorithm {
          * In the process, it also modifies existing objects in order to
          * re-train them.
          *
-         * \param population The current population; must be sorted
+         * \param[inout] individual The individual we should modify. It may
+         *  be a part of the population.
+         *
+         * \param populationRange A range of the current population that
+         *  (1) must be sorted and (2) must not contain the given individual
+         *  to modify.
          *
          * \param[in] currentSuccess The momentary success rate
          *
@@ -330,8 +387,9 @@ namespace wzalgorithm {
          *  individual. The frist reference denotes the better, the second
          *  the other individual that were chosen.
          */
-        void modifyWorstIndividual(
-                Population& population,
+        void modifyIndividual(
+                detail::Individual& individual,
+                PopulationRange populationRange,
                 double currentSuccess);
 
 
@@ -414,7 +472,7 @@ namespace wzalgorithm {
         /*!
          * \brief Our Random Number Generator
          */
-        boost::random::mt11213b m_randomNumberGenerator;
+        rng_t m_randomNumberGenerator;
 
 
         /*!
@@ -458,4 +516,4 @@ namespace std {
 } // namespace std
 
 
-#endif // WINZENT_ALGORITHM_REVOLT_H_
+#endif // WZALGORITHM_REVOLT_H_

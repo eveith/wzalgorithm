@@ -1,5 +1,5 @@
-#ifndef REVOLTEST_H_
-#define REVOLTEST_H_
+#ifndef REVOLTTEST_H_
+#define REVOLTTEST_H_
 
 
 #include <gtest/gtest.h>

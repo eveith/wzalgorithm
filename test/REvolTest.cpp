@@ -36,6 +36,52 @@ double REvolTest::ackley(double x, double y)
 }
 
 
+TEST_F(REvolTest, testIndividualStrictWeekOrdering)
+{
+    Individual i0, i1, i2, i3;
+
+    i0.timeToLive = 4242;
+    i1.timeToLive = 42;
+    i2.timeToLive = 42;
+    i3.timeToLive = 23;
+
+    i0.parameters.push_back(0.0);
+    i1.parameters.push_back(1.42);
+    i2.parameters.push_back(1.42);
+    i3.parameters.push_back(23.42);
+
+    i0.restrictions.push_back(0.0);
+    i1.restrictions.push_back(42.42);
+    i2.restrictions.push_back(42.42);
+    i3.restrictions.push_back(123.23);
+
+    ASSERT_EQ(i1, i2);
+    ASSERT_NE(i1, i3);
+    ASSERT_NE(i2, i3);
+
+    ASSERT_TRUE(i1 < i3);
+    ASSERT_TRUE(i2 < i3);
+    ASSERT_FALSE(i3 < i1);
+    ASSERT_FALSE(i3 < i2);
+    ASSERT_TRUE(i0 < i1 && i0 < i2 && i0 < i3);
+
+    // Irreflexibility:
+    ASSERT_FALSE(i1 < i1);
+
+    // Asymetry:
+    ASSERT_FALSE(i2 < i3 && i3 < i2);
+    ASSERT_FALSE(i2 < i3 && i3 < i2);
+
+    // Transitivity:
+    ASSERT_TRUE(i0 < i1 && i1 < i3 && i0 < i3);
+
+
+    // Incomparability:
+    ASSERT_TRUE(i1 == i2);
+    ASSERT_TRUE(!(i1 < i2) && !(i2 < i1));
+}
+
+
 TEST_F(REvolTest, testPeaks)
 {
     REvol revol;

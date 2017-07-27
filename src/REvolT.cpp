@@ -1,10 +1,14 @@
 #include <cfenv>
 #include <cmath>
 #include <limits>
+#include <future>
 #include <cassert>
 #include <cstdlib>
+#include <ostream>
 #include <algorithm>
 #include <functional>
+
+#include <CTPL/ctpl.h>
 
 #include <boost/random.hpp>
 #include <boost/ptr_container/ptr_vector.hpp>
@@ -17,22 +21,65 @@ using std::exp;
 using std::fabs;
 using std::ceil;
 using std::size_t;
+using std::distance;
 using std::ptrdiff_t;
+using std::make_pair;
 using std::numeric_limits;
 
 
 namespace wzalgorithm {
-    void REvolT::agePopulation(Population& population)
+    void REvolT::agePopulation(REvolT::Population& population)
     {
-        for (auto& i: population) {
-            i.age();
+        for (auto i : population) {
+            i->age();
         }
     }
 
 
-    double REvolT::frandom()
+    static void sort(
+            ptrdiff_t l,
+            ptrdiff_t r,
+            REvolT::Population& population)
+
     {
-        return m_uniformDistribution(m_randomNumberGenerator);
+        auto i = l;
+        auto j = r;
+        auto x = population[vector_t::size_type(l + r) / 2];
+
+        do {
+            while (population[vector_t::size_type(i)]->isBetterThan(*x)) {
+                ++i;
+            }
+
+            while (x->isBetterThan(*(population[vector_t::size_type(j)]))) {
+                --j;
+            }
+
+            if (i <= j) {
+                std::swap(
+                        population[vector_t::size_type(i)],
+                        population[vector_t::size_type(j)]);
+                ++i;
+                --j;
+            }
+        } while (i <= j);
+
+        if (l < j) {
+            sort(l, j, population);
+        }
+
+        if (i < r) {
+            sort(i, r, population);
+        }
+    }
+
+
+    void REvolT::sort(REvolT::Population& population)
+    {
+        wzalgorithm::sort(
+                0,
+                static_cast<ptrdiff_t>(population.size()) - 1,
+                population);
     }
 
 
@@ -51,6 +98,24 @@ namespace wzalgorithm {
             m_randomNumberGenerator(0xCAFEu)
     {
     }
+
+
+    REvolT::~REvolT()
+    {
+    }
+
+
+    double REvolT::frandom()
+    {
+        return frandom(m_randomNumberGenerator);
+    }
+
+
+    double REvolT::frandom(REvolT::rng_t& rng)
+    {
+        return m_uniformDistribution(rng);
+    }
+
 
 
     size_t REvolT::maxEpochs() const
@@ -272,7 +337,7 @@ namespace wzalgorithm {
     }
 
 
-    REvol::Population REvolT::generateInitialPopulation(
+    REvolT::Population REvolT::generateInitialPopulation(
             detail::Individual const& origin)
     {
         assert(origin.parameters.size() == origin.scatter.size());
@@ -284,79 +349,93 @@ namespace wzalgorithm {
 
         // Handle base (origin) individual:
 
-        auto baseIndividual = new detail::Individual(origin);
+        auto* baseIndividual = new detail::Individual(origin);
         baseIndividual->timeToLive = startTTL();
         baseIndividual->restrictions.push_back(
                 std::numeric_limits<double>::max());
         population.push_back(baseIndividual);
 
+        thread_local rng_t rng;
+        FuturePopulation futurePopulation;
+        futurePopulation.reserve(populationSize());
+        ctpl::thread_pool pool(static_cast<int>(
+                std::thread::hardware_concurrency()));
 
         for (size_t i = 0; i < populationSize(); ++i) {
-            auto individual = new detail::Individual();
-            individual->timeToLive = startTTL();
-            individual->parameters.reserve(numParameters);
-            individual->scatter.reserve(numParameters);
-            individual->restrictions.push_back(
-                    numeric_limits<double>::max());
+                futurePopulation.push_back(pool.push(
+                        [this, &numParameters, &origin](int) {
+                auto individual = new detail::Individual();
+                individual->timeToLive = startTTL();
+                individual->parameters.reserve(numParameters);
+                individual->scatter.reserve(numParameters);
+                individual->restrictions.push_back(
+                        numeric_limits<double>::max());
 
-            for (size_t j = 0; j != numParameters; ++j) {
-                const double r = origin.scatter.at(j)
-                        * exp(0.4 * (0.5 - frandom()));
-                individual->scatter.push_back(r);
-                individual->parameters.push_back(
-                        origin.parameters.at(j)
-                            + r * (frandom()-frandom()+frandom()-frandom()));
-            }
+                for (size_t j = 0; j != numParameters; ++j) {
+                    const double r = origin.scatter.at(j)
+                            * exp(0.4 * (0.5 - frandom(rng)));
+                    individual->scatter.push_back(r);
+                    individual->parameters.push_back(
+                            origin.parameters.at(j) + r * (
+                                    frandom(rng)
+                                    - frandom(rng)
+                                    + frandom(rng)
+                                    - frandom(rng)));
+                }
 
-            population.push_back(individual);
+                return individual;
+            }));
         }
 
+        for (auto& f: futurePopulation) {
+            population.push_back(f.get());
+        }
 
         assert(population.size() == populationSize() + 1);
         return population;
     }
 
 
-    void REvolT::modifyWorstIndividual(
-            Population& population,
+    void REvolT::modifyIndividual(
+            detail::Individual& individual,
+            PopulationRange populationRange,
             double currentSuccess)
     {
-        assert(population.size() >= 3);
+        thread_local rng_t rng;
 
         // Select proper individuals:
 
-        Population::size_type eliteIdx(
-                static_cast<Population::size_type>(abs(static_cast<long long>(
-                    m_rnDistribution(m_randomNumberGenerator)
-                        % eliteSize())
-                - static_cast<long long>(
-                    m_rnDistribution(m_randomNumberGenerator)
-                        % eliteSize()))));
-        Population::size_type otherIdx(
-                m_rnDistribution(m_randomNumberGenerator)
-                    % (population.size() - 1));
+        const auto nIndividuals = distance(
+                populationRange.first,
+                populationRange.second);
+        assert(nIndividuals >= 2);
+        auto eliteIdx = abs(static_cast<ptrdiff_t>(
+                m_rnDistribution(rng) % eliteSize()
+                    - (m_rnDistribution(rng) % eliteSize())));
+        auto otherIdx = m_rnDistribution(rng) % nIndividuals;
 
-        if (population.at(otherIdx) < population.at(eliteIdx)) {
+        if (**(populationRange.first + otherIdx)
+                < **(populationRange.first + eliteIdx)) {
             std::swap(eliteIdx, otherIdx);
         }
 
-        auto &individual = population.back();
-        auto &eliteIndividual = population.at(eliteIdx);
-        auto &otherIndividual = population.at(otherIdx);
+        auto eliteIndividual = *(populationRange.first + eliteIdx);
+        auto const otherIndividual = *(populationRange.first + otherIdx);
 
 
         // Determine influence of current success rate and gradient:
 
         double xlp = 0.0;
         const double successRate = currentSuccess / targetSuccess() - 1.0;
-        const int gradientSwitch(m_rnDistribution(m_randomNumberGenerator)%3);
-        const double expvar = exp(frandom() - frandom());
+        const int gradientSwitch(m_rnDistribution(rng) % 3);
+        const double expvar = exp(frandom(rng) - frandom(rng));
 
         if (2 == gradientSwitch) {
-            xlp = (frandom() + frandom() + frandom() + frandom()
-                        + frandom() + frandom() + frandom() + frandom()
-                        + frandom() + frandom() - frandom() - frandom()
-                        - frandom() - frandom() - frandom() - frandom())
+            xlp = (frandom(rng) + frandom(rng) + frandom(rng) + frandom(rng)
+                        + frandom(rng) + frandom(rng) + frandom(rng)
+                        + frandom(rng) + frandom(rng) + frandom(rng)
+                        - frandom(rng) - frandom(rng) - frandom(rng)
+                        - frandom(rng) - frandom(rng) - frandom(rng))
                 * gradientWeight();
 
             if (xlp > 0.0) {
@@ -368,52 +447,52 @@ namespace wzalgorithm {
 
         // Now modify the new individual:
 
-        const auto numParameters = eliteIndividual.parameters.size();
+        const auto numParameters = eliteIndividual->parameters.size();
 
-        assert(numParameters == eliteIndividual.parameters.size());
-        assert(numParameters == otherIndividual.parameters.size());
+        assert(numParameters == eliteIndividual->parameters.size());
+        assert(numParameters == otherIndividual->parameters.size());
 
         for (vector_t::size_type i = 0; i != numParameters; ++i) {
             std::feclearexcept(FE_ALL_EXCEPT);
 
-            double dx = eliteIndividual.scatter.at(i) * exp(
+            double dx = eliteIndividual->scatter.at(i) * exp(
                     successWeight() * successRate);
-            dx = clamp(dx, eliteIndividual.parameters.at(i));
+            dx = clamp(dx, eliteIndividual->parameters.at(i));
 
             // Mutate scatter:
 
-            eliteIndividual.scatter[i] = dx;
+            eliteIndividual->scatter[i] = dx;
 
-            if (frandom() < 0.5) {
-                dx = eliteIndividual.scatter.at(i);
+            if (frandom(rng) < 0.5) {
+                dx = eliteIndividual->scatter.at(i);
             } else {
-                dx = 0.5 * (eliteIndividual.scatter.at(i)
-                        + otherIndividual.scatter.at(i));
+                dx = 0.5 * (eliteIndividual->scatter.at(i)
+                        + otherIndividual->scatter.at(i));
             }
 
             dx *= expvar;
-            dx = clamp(dx, eliteIndividual.parameters.at(i));
+            dx = clamp(dx, eliteIndividual->parameters.at(i));
 
             // Generate new scatter:
 
             individual.scatter[i] = dx;
 
-            dx *= (frandom() + frandom() + frandom() + frandom()
-                    + frandom() - frandom() - frandom() - frandom()
-                    - frandom() - frandom());
+            dx *= (frandom(rng) + frandom(rng) + frandom(rng) + frandom(rng)
+                    + frandom(rng) - frandom(rng) - frandom(rng)
+                    - frandom(rng) - frandom(rng) - frandom(rng));
 
             if (0 == gradientSwitch) { // Everything from the elite, p=2/3
-                if (m_rnDistribution(m_randomNumberGenerator) % 3 < 2) {
-                    dx += eliteIndividual.parameters.at(i);
+                if (m_rnDistribution(rng) % 3 < 2) {
+                    dx += eliteIndividual->parameters.at(i);
                 } else {
-                    dx += otherIndividual.parameters.at(i);
+                    dx += otherIndividual->parameters.at(i);
                 }
             } else if (1 == gradientSwitch) { // use eliteIndividual
-                dx += eliteIndividual.parameters.at(i);
+                dx += eliteIndividual->parameters.at(i);
             } else if (2 == gradientSwitch) { // use elite & gradient
-                dx += eliteIndividual.parameters.at(i);
-                dx += xlp * (eliteIndividual.parameters.at(i)
-                        - otherIndividual.parameters.at(i));
+                dx += eliteIndividual->parameters.at(i);
+                dx += xlp * (eliteIndividual->parameters.at(i)
+                        - otherIndividual->parameters.at(i));
             }
 
             individual.parameters[i] = dx;
@@ -445,62 +524,101 @@ namespace wzalgorithm {
         size_t lastSuccess = 0;
         size_t epoch       = 0;
         auto currentSuccess= targetSuccess();
+
+        detail::Individual* bestIndividual;
         Population population = generateInitialPopulation(origin);
-        detail::Individual* bestIndividual = &(population.front());
+        ctpl::thread_pool pool(static_cast<int>(
+                std::thread::hardware_concurrency()));
+        std::vector<std::future<bool>> evaluations;
+        evaluations.reserve(population.size());
+
+        // Do first-time evaluation of the population:
+
+        for (auto individual: population) {
+            evaluations.push_back(pool.push([&succeeds, &individual](int) {
+                return succeeds(*individual);
+            }));
+        }
+
+        for (size_t i = 0; i != evaluations.size(); ++i) {
+            if (evaluations[i].get()) {
+                bestIndividual = population.at(i);
+                goto out;
+            }
+        }
+
+        sort(population);
+        bestIndividual = population.front();
+
 
         do {
-            // Modify the worst individual:
+            evaluations.clear();
 
-            if (0 < epoch) {
-                modifyWorstIndividual(population, currentSuccess);
+            // Modify the worst individual(s):
+            for (int i = 1; i <= pool.size(); ++i) {
+                evaluations.push_back(pool.push([
+                        &i,
+                        this,
+                        &pool,
+                        &succeeds,
+                        &population,
+                        &currentSuccess,
+                        &bestIndividual](int) -> bool {
+                    auto individual = *(population.end() - i);
+                    modifyIndividual(
+                            *individual,
+                            make_pair(
+                                population.begin(),
+                                population.end() - pool.size()),
+                            currentSuccess);
 
-                if (succeeds(population.back())) {
-                    bestIndividual = &(population.back());
+                    return succeeds(*individual);
+                }));
+            }
+
+            // Check for addition of a new individual, or global success:
+
+            auto worstIndividual = population.at(vector_t::size_type(
+                    population.size() - pool.size() - 1));
+
+            for (auto it = evaluations.begin(); it != evaluations.end();
+                    it++) {
+                auto newIndividual = *(population.end() - 1
+                            - (it - evaluations.begin()));
+
+                assert(it->valid());
+                if (it->get()) {
+                    bestIndividual = newIndividual;
                     break;
                 }
-            } else {
-                for (auto &individual: population) {
-                    if (succeeds(individual)) {
-                        bestIndividual = &individual;
-                        break;
+
+                // Check for global or, at least, local improvement:
+
+                if (! worstIndividual->isBetterThan(*newIndividual)) {
+                    if (worstIndividual->timeToLive >= 0) {
+                        currentSuccess = REvol::pt1(
+                                currentSuccess,
+                                1.0,
+                                measurementEpochs());
+                    } else {
+                        currentSuccess = REvol::pt1(
+                                currentSuccess,
+                                -1.0,
+                                measurementEpochs());
                     }
                 }
 
-                population.sort();
-                bestIndividual = &(population.front());
-            }
-
-            // Check for addition of a new individual:
-
-            auto& newIndividual = population.back();
-            auto& worstIndividual = population.at(population.size() - 2);
-
-            // Check for global or, at least, local improvement:
-
-            if (! worstIndividual.isBetterThan(newIndividual)) {
-                if (worstIndividual.timeToLive >= 0) {
-                    currentSuccess = REvol::pt1(
-                            currentSuccess,
-                            1.0,
-                            measurementEpochs());
-                } else {
-                    currentSuccess = REvol::pt1(
-                            currentSuccess,
-                            -1.0,
-                            measurementEpochs());
+                if (newIndividual->isBetterThan(*bestIndividual)) {
+                    lastSuccess = epoch;
+                    bestIndividual = newIndividual;
+                    bestIndividual->timeToLive = ptrdiff_t(epoch);
                 }
-            }
-
-            if (newIndividual.isBetterThan(*bestIndividual)) {
-                lastSuccess = epoch;
-                bestIndividual = &newIndividual;
-                bestIndividual->timeToLive = static_cast<ptrdiff_t>(epoch);
             }
 
             // Sort the list and do a bit of caretaking:
 
             agePopulation(population);
-            population.sort();
+            sort(population);
             currentSuccess = REvol::pt1(
                     currentSuccess,
                     0.0,
@@ -509,7 +627,11 @@ namespace wzalgorithm {
         } while (epoch < maxEpochs()
                 && epoch - lastSuccess <= maxNoSuccessEpochs());
 
+out:
         detail::REvolResult result = { *bestIndividual, epoch };
+        for (auto i : population) {
+            delete i;
+        }
         return result;
     }
 } // namespace wzalgorithm
@@ -521,7 +643,7 @@ namespace std {
             const wzalgorithm::REvolT& algorithm)
     {
         os
-                << "REvol("
+                << "REvolT("
                 << "maxNoSuccessEpochs = " << algorithm.maxNoSuccessEpochs()
                 << ", populationSize = " << algorithm.populationSize()
                 << ", eliteSize = " << algorithm.eliteSize()

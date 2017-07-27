@@ -1,5 +1,5 @@
-#ifndef WINZENT_ALGORITHM_REVOL_H_
-#define WINZENT_ALGORITHM_REVOL_H_
+#ifndef WZALGORITHM_REVOL_H_
+#define WZALGORITHM_REVOL_H_
 
 
 #include <cstddef>
@@ -623,4 +623,4 @@ namespace std {
             wzalgorithm::REvol const& algorithm);
 } // namespace std
 
-#endif // WINZENT_ALGORITHM_REVOL_H_
+#endif // WZALGORITHM_REVOL_H_

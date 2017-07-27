@@ -1,5 +1,5 @@
-#ifndef REVOLBENCHMARK_H
-#define REVOLBENCHMARK_H
+#ifndef REVOLTBENCHMARK_H
+#define REVOLTBENCHMARK_H
 
 
 #include <vector>

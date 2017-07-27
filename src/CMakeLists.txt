@@ -26,6 +26,7 @@ target_include_directories(wzalgorithm
 target_link_libraries(wzalgorithm
     m
     stdc++
+    Threads::Threads
     ${Boost_LIBRARIES})
 
 set_target_properties(wzalgorithm

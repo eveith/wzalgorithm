@@ -7,7 +7,8 @@ include(CheckIncludeFileCXX)
 
 
 find_package(GTest)
-find_package(Boost 1.58.0 REQUIRED COMPONENTS random)
+find_package(Threads REQUIRED)
+find_package(Boost 1.58.0 REQUIRED)
 check_include_file_cxx("benchmark/benchmark.h" BENCHMARK_FOUND)
 
 
@@ -30,6 +31,9 @@ add_custom_target(srctar
         "--exclude=Makefile" "--exclude='*.so*'"
         "src" "test" "CMakeLists.txt"
         "README" "COPYING" "VERSION.in" "wzalgorithm.spec.in")
+
+
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/3rdparty")
 
 
 add_subdirectory(src)

@@ -1,12 +1,12 @@
-#ifndef WINZENT_ALGORITHM_CONFIG_H_
-#define WINZENT_ALGORITHM_CONFIG_H_
+#ifndef WZALGORITHM_CONFIG_H_
+#define WZALGORITHM_CONFIG_H_
 
 
 #include <vector>
 #include <ostream>
 
 
-#define WINZENT_ALGORITHM_VERSION "@PROJECT_VERSION@"
+#define WZALGORITHM_VERSION "@PROJECT_VERSION@"
 
 
 namespace wzalgorithm {
@@ -32,4 +32,4 @@ namespace std {
 } // namespace std
 
 
-#endif // WINZENT_ALGORITHM_CONFIG_H_
+#endif // WZALGORITHM_CONFIG_H_
