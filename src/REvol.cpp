@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <functional>
 
+#include <boost/range.hpp>
 #include <boost/random.hpp>
 #include <boost/ptr_container/ptr_vector.hpp>
 
@@ -15,18 +16,20 @@
 using std::exp;
 using std::fabs;
 using std::ceil;
-using std::size_t;
+using std::distance;
 using std::ptrdiff_t;
 using std::numeric_limits;
 
+using boost::make_iterator_range;
+
 
 namespace wzalgorithm {
-    detail::Individual::Individual(): timeToLive(0)
+    REvol::Individual::Individual(): timeToLive(0)
     {
     }
 
 
-    detail::Individual::Individual(detail::Individual const& other):
+    REvol::Individual::Individual(REvol::Individual const& other):
             parameters(other.parameters),
             scatter(other.scatter),
             timeToLive(other.timeToLive),
@@ -35,7 +38,7 @@ namespace wzalgorithm {
     }
 
 
-    detail::Individual::Individual(detail::Individual&& other):
+    REvol::Individual::Individual(REvol::Individual&& other):
             parameters(std::move(other.parameters)),
             scatter(std::move(other.scatter)),
             timeToLive(std::move(other.timeToLive)),
@@ -44,16 +47,14 @@ namespace wzalgorithm {
     }
 
 
-    detail::Individual& detail::Individual::age()
+    REvol::Individual& REvol::Individual::age()
     {
         timeToLive -= 1;
         return *this;
     }
 
 
-    bool detail::Individual::isBetterThan(
-            detail::Individual const& other)
-            const
+    bool REvol::Individual::isBetterThan(REvol::Individual const& other) const
     {
         if (this->timeToLive < 0 && other.timeToLive >= 0) {
             return false;
@@ -72,23 +73,23 @@ namespace wzalgorithm {
                 ? other.restrictions.size()
                 : this->restrictions.size());
         for (vector_t::size_type i = 1; i < size; ++i) {
-            if (this->restrictions.at(i) < other.restrictions.at(i)) {
+            if (this->restrictions[i] < other.restrictions[i]) {
                 return true;
             } else {
-                if (this->restrictions.at(i) > other.restrictions.at(i)) {
+                if (this->restrictions[i] > other.restrictions[i]) {
                     return false;
                 }
             }
         }
 
-        if (this->restrictions.at(0) == other.restrictions.at(0)) {
+        if (this->restrictions[0] == other.restrictions[0]) {
             if (this->timeToLive > other.timeToLive) {
                 return true;
             } else {
                 return false;
             }
         } else {
-            if (this->restrictions.at(0) < other.restrictions.at(0)) {
+            if (this->restrictions[0] < other.restrictions[0]) {
                 return true;
             } else {
                 return false;
@@ -99,15 +100,15 @@ namespace wzalgorithm {
     }
 
 
-    bool detail::Individual::isIndividual1Better(
-            detail::Individual const& i1,
-            detail::Individual const& i2)
+    bool REvol::Individual::isIndividual1Better(
+            REvol::Individual const& i1,
+            REvol::Individual const& i2)
     {
         return i1.isBetterThan(i2);
     }
 
 
-    bool detail::Individual::operator ==(detail::Individual const& other)
+    bool REvol::Individual::operator ==(REvol::Individual const& other)
             const
     {
             return (other.timeToLive == this->timeToLive
@@ -117,31 +118,30 @@ namespace wzalgorithm {
     }
 
 
-    bool detail::Individual::operator !=(detail::Individual const& other)
+    bool REvol::Individual::operator !=(REvol::Individual const& other)
             const
     {
         return !(*this == other);
     }
 
 
-    detail::Individual& detail::Individual::operator =(
-            detail::Individual const& other)
+    REvol::Individual& REvol::Individual::operator =(
+            REvol::Individual const& other)
     {
         if (this == &other) {
             return *this;
         }
 
         this->timeToLive    = other.timeToLive;
-        this->parameters    = other.parameters;
         this->scatter       = other.scatter;
+        this->parameters    = other.parameters;
         this->restrictions  = other.restrictions;
 
         return *this;
     }
 
 
-    bool detail::Individual::operator <(detail::Individual const& other)
-            const
+    bool REvol::Individual::operator <(REvol::Individual const& other) const
     {
         return this->isBetterThan(other);
     }
@@ -149,17 +149,13 @@ namespace wzalgorithm {
 
     double REvol::pt1(double y, double u, double t)
     {
-        if (t + 1.0 != 1.0) {
-            return y + ((u - y) / t);
-        } else {
-            return u;
-        }
+        return (t + 1.0 != 1.0) ? y + ((u - y) / t) : u;
     }
 
 
-    void REvol::agePopulation(Population& population)
+    void REvol::agePopulation(PopulationRange population)
     {
-        for (auto& i: population) {
+        for (auto& i : make_iterator_range(population)) {
             i.age();
         }
     }
@@ -172,7 +168,7 @@ namespace wzalgorithm {
 
 
     REvol::REvol():
-            m_maxNoSuccessEpochs(std::numeric_limits<size_t>::max()),
+            m_maxNoSuccessEpochs(std::numeric_limits<epoch_t>::max()),
             m_populationSize(0),
             m_eliteSize(0),
             m_gradientWeight(1.0),
@@ -188,38 +184,38 @@ namespace wzalgorithm {
     }
 
 
-    size_t REvol::maxEpochs() const
+    REvol::epoch_t REvol::maxEpochs() const
     {
         return m_maxEpochs;
     }
 
 
-    REvol& REvol::maxEpochs(std::size_t epochs)
+    REvol& REvol::maxEpochs(REvol::epoch_t epochs)
     {
         m_maxEpochs = epochs;
         return *this;
     }
 
-    size_t REvol::maxNoSuccessEpochs() const
+    REvol::epoch_t REvol::maxNoSuccessEpochs() const
     {
         return m_maxNoSuccessEpochs;
     }
 
 
-    REvol& REvol::maxNoSuccessEpochs(std::size_t epochs)
+    REvol& REvol::maxNoSuccessEpochs(REvol::epoch_t epochs)
     {
         m_maxNoSuccessEpochs = epochs;
         return *this;
     }
 
 
-    size_t REvol::populationSize() const
+    REvol::Population::size_type REvol::populationSize() const
     {
         return m_populationSize;
     }
 
 
-    REvol& REvol::populationSize(size_t size)
+    REvol& REvol::populationSize(REvol::Population::size_type size)
     {
         m_populationSize = size;
 
@@ -235,13 +231,13 @@ namespace wzalgorithm {
     }
 
 
-    size_t REvol::eliteSize() const
+    REvol::Population::size_type REvol::eliteSize() const
     {
         return m_eliteSize;
     }
 
 
-    REvol& REvol::eliteSize(size_t size)
+    REvol& REvol::eliteSize(REvol::Population::size_type size)
     {
         m_eliteSize = size;
         return *this;
@@ -339,13 +335,13 @@ namespace wzalgorithm {
     }
 
 
-    size_t REvol::measurementEpochs() const
+    REvol::epoch_t REvol::measurementEpochs() const
     {
         return m_measurementEpochs;
     }
 
 
-    REvol& REvol::measurementEpochs(size_t epochs)
+    REvol& REvol::measurementEpochs(epoch_t epochs)
     {
         m_measurementEpochs = epochs;
         return *this;
@@ -408,7 +404,7 @@ namespace wzalgorithm {
 
 
     REvol::Population REvol::generateInitialPopulation(
-            const detail::Individual &origin)
+            Individual const& origin)
     {
         assert(origin.parameters.size() == origin.scatter.size());
 
@@ -419,22 +415,21 @@ namespace wzalgorithm {
 
         // Handle base (origin) individual:
 
-        auto baseIndividual = new detail::Individual(origin);
+        auto baseIndividual = new REvol::Individual(origin);
         baseIndividual->timeToLive = startTTL();
         baseIndividual->restrictions.push_back(
                 std::numeric_limits<double>::max());
         population.push_back(baseIndividual);
 
 
-        for (size_t i = 0; i < populationSize(); ++i) {
-            auto individual = new detail::Individual();
+        for (Population::size_type i = 0; i < populationSize(); ++i) {
+            auto individual = new REvol::Individual();
             individual->timeToLive = startTTL();
             individual->parameters.reserve(numParameters);
             individual->scatter.reserve(numParameters);
-            individual->restrictions.push_back(
-                    numeric_limits<double>::max());
+            individual->restrictions.push_back(numeric_limits<double>::max());
 
-            for (size_t j = 0; j != numParameters; ++j) {
+            for (vector_t::size_type j = 0; j != numParameters; ++j) {
                 const double r = origin.scatter.at(j)
                         * exp(0.4 * (0.5 - frandom()));
                 individual->scatter.push_back(r);
@@ -452,32 +447,27 @@ namespace wzalgorithm {
     }
 
 
-    void REvol::modifyWorstIndividual(
-            Population& population,
+    void REvol::modifyIndividual(
+            Individual& individual,
+            PopulationRange population,
             double currentSuccess)
     {
-        assert(population.size() >= 3);
+        auto nIndividuals = distance(population.first, population.second);
+        assert(nIndividuals >= 2);
 
         // Select proper individuals:
 
-        Population::size_type eliteIdx(
-                static_cast<Population::size_type>(abs(static_cast<long long>(
-                    m_rnDistribution(m_randomNumberGenerator)
-                        % eliteSize())
-                - static_cast<long long>(
-                    m_rnDistribution(m_randomNumberGenerator)
-                        % eliteSize()))));
-        Population::size_type otherIdx(
-                m_rnDistribution(m_randomNumberGenerator)
-                    % (population.size() - 1));
+        auto eliteIdx = abs(static_cast<ptrdiff_t>(
+                m_rnDistribution(m_randomNumberGenerator) % eliteSize()
+                    - m_rnDistribution(m_randomNumberGenerator)%eliteSize()));
+        auto otherIdx(m_rnDistribution(m_randomNumberGenerator)%nIndividuals);
 
-        if (population.at(otherIdx) < population.at(eliteIdx)) {
+        if (*(population.first + otherIdx) < *(population.first + eliteIdx)) {
             std::swap(eliteIdx, otherIdx);
         }
 
-        auto &individual = population.back();
-        auto &eliteIndividual = population.at(eliteIdx);
-        auto &otherIndividual = population.at(otherIdx);
+        auto &eliteIndividual = *(population.first + eliteIdx);
+        auto &otherIndividual = *(population.first + otherIdx);
 
 
         // Determine influence of current success rate and gradient:
@@ -559,16 +549,16 @@ namespace wzalgorithm {
     }
 
 
-    detail::REvolResult REvol::run(
-            const detail::Individual &origin,
-            const Evaluator &succeeds)
+    REvol::Result REvol::run(
+            REvol::Individual const& origin,
+            Evaluator const& succeeds)
     {
         if (0 == startTTL()) {
             startTTL(static_cast<ptrdiff_t>(populationSize()) * 3);
         }
 
         if (0 == measurementEpochs()) {
-            measurementEpochs(static_cast<size_t>(ceil(maxEpochs() / 200.0)));
+            measurementEpochs(static_cast<epoch_t>(ceil(maxEpochs()/200.0)));
         }
 
         if (!hasSensibleTrainingParameters()) {
@@ -577,38 +567,41 @@ namespace wzalgorithm {
             return { origin, 0 };
         }
 
-        size_t lastSuccess = 0;
-        size_t epoch       = 0;
-        auto currentSuccess= targetSuccess();
-        Population population = generateInitialPopulation(origin);
-        detail::Individual* bestIndividual = &(population.front());
+        REvol::epoch_t lastSuccess  = 0;
+        REvol::epoch_t epoch        = 0;
+        auto currentSuccess         = targetSuccess();
+        auto population             = generateInitialPopulation(origin);
+        auto* bestIndividual        = &(population.front());
+
+        // Initial evaluation of the population:
+
+        for (auto& individual : population) {
+            if (succeeds(individual)) {
+                bestIndividual = &individual;
+                goto out;
+            }
+        }
+
+        // Main loop:
 
         do {
-            // Modify the worst individual:
+            // Modify the (currently) worst individual:
 
-            if (0 < epoch) {
-                modifyWorstIndividual(population, currentSuccess);
+            auto& newIndividual = population.back();
 
-                if (succeeds(population.back())) {
-                    bestIndividual = &(population.back());
-                    break;
-                }
-            } else {
-                for (auto &individual: population) {
-                    if (succeeds(individual)) {
-                        bestIndividual = &individual;
-                        break;
-                    }
-                }
+            modifyIndividual(
+                    newIndividual,
+                    std::make_pair(begin(population), end(population) -1),
+                    currentSuccess);
 
-                population.sort();
-                bestIndividual = &(population.front());
+            if (succeeds(newIndividual)) {
+                bestIndividual = &newIndividual;
+                break;
             }
 
-            // Check for addition of a new individual:
-
-            auto &newIndividual = population.back();
-            auto &worstIndividual = population.at(population.size() - 2);
+            population.sort();
+            bestIndividual = &(population.front());
+            const auto& worstIndividual = population.at(population.size()-2);
 
             // Check for global or, at least, local improvement:
 
@@ -634,7 +627,7 @@ namespace wzalgorithm {
 
             // Sort the list and do a bit of caretaking:
 
-            agePopulation(population);
+            agePopulation(std::make_pair(begin(population), end(population)));
             population.sort();
             currentSuccess = pt1(
                     currentSuccess,
@@ -644,7 +637,8 @@ namespace wzalgorithm {
         } while (epoch < maxEpochs()
                 && epoch - lastSuccess <= maxNoSuccessEpochs());
 
-        detail::REvolResult result = { *bestIndividual, epoch };
+out:
+        REvol::Result result = { *bestIndividual, epoch };
         return result;
     }
 } // namespace wzalgorithm
@@ -653,7 +647,7 @@ namespace wzalgorithm {
 namespace std {
     ostream &operator<<(
             ostream &os,
-            const wzalgorithm::detail::Individual &individual)
+            const wzalgorithm::REvol::Individual &individual)
     {
         os << "Individual(";
 

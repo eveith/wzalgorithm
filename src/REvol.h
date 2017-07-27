@@ -1,5 +1,5 @@
-#ifndef WINZENT_ALGORITHM_REVOL_H_
-#define WINZENT_ALGORITHM_REVOL_H_
+#ifndef WZALGORITHM_REVOL_H_
+#define WZALGORITHM_REVOL_H_
 
 
 #include <cstddef>
@@ -12,7 +12,17 @@
 
 
 namespace wzalgorithm {
-    namespace detail {
+
+
+    /*!
+     * \brief Implements an optimization algorithm called "REvol" that
+     *  implements a multi-part evolutionary algorithm with implicit
+     *  gradient information and dynamic reproduction probabilty spread
+     *  of the individuals.
+     */
+    class REvol
+    {
+    public:
 
 
         /*!
@@ -138,31 +148,30 @@ namespace wzalgorithm {
         };
 
 
-        //! The result of a run of the REvol algorithm
-        struct REvolResult
+        //! \brief The result of a run of the REvol algorithm
+        struct Result
         {
-            //! The best individual
+            //! \brief The best individual
             Individual bestIndividual;
 
-            //! Number of iterations the algorithm took
+            //! \brief Number of iterations the algorithm took
             std::size_t iterationsUsed;
         };
-    }
 
 
-    /*!
-     * \brief Implements an optimization algorithm called "REvol" that
-     *  implements a multi-part evolutionary algorithm with implicit
-     *  gradient information and dynamic reproduction probabilty spread
-     *  of the individuals.
-     */
-    class REvol
-    {
-    public:
+
+        //! \brief Auto-deleting vector for the population
+        typedef boost::ptr_vector<Individual> Population;
 
 
-        //! Auto-deleting vector for the population
-        typedef boost::ptr_vector<detail::Individual> Population;
+        //! \brief A read-write range over a population
+        typedef std::pair<
+                Population::iterator,
+                Population::iterator> PopulationRange;
+
+
+        //! \brief The data type to count the number of epochs/iterations
+        typedef std::size_t epoch_t;
 
 
         /*!
@@ -183,7 +192,7 @@ namespace wzalgorithm {
          * \return `true` if the individual's evaluation satisfies the
          *  user-determined success criterion, `false` otherwise
          */
-        typedef std::function<bool (detail::Individual&)> Evaluator;
+        typedef std::function<bool (Individual&)> Evaluator;
 
 
         //! A time-discrete LTI system of first order
@@ -195,7 +204,7 @@ namespace wzalgorithm {
          *
          * \param population The population
          */
-        static void agePopulation(Population& population);
+        static void agePopulation(PopulationRange population);
 
 
         //! Creates a new, un-initialized instance of this algorithm
@@ -216,7 +225,7 @@ namespace wzalgorithm {
          *
          * \return The maximum number of epochs
          */
-        std::size_t maxEpochs() const;
+        epoch_t maxEpochs() const;
 
 
         /*!
@@ -227,7 +236,7 @@ namespace wzalgorithm {
          *
          * \return `*this`
          */
-        REvol& maxEpochs(size_t epochs);
+        REvol& maxEpochs(epoch_t epochs);
 
 
         /*!
@@ -236,7 +245,7 @@ namespace wzalgorithm {
          *
          * \return The number of epochs
          */
-        size_t maxNoSuccessEpochs() const;
+        epoch_t maxNoSuccessEpochs() const;
 
 
         /*!
@@ -247,7 +256,7 @@ namespace wzalgorithm {
          *
          * \return `*this`
          */
-        REvol& maxNoSuccessEpochs(size_t epochs);
+        REvol& maxNoSuccessEpochs(epoch_t epochs);
 
 
         /*!
@@ -265,7 +274,7 @@ namespace wzalgorithm {
          *
          * \return `*this`
          */
-        REvol& populationSize(size_t size);
+        REvol& populationSize(Population::size_type size);
 
 
         /*!
@@ -273,7 +282,7 @@ namespace wzalgorithm {
          *
          * \return The number of elite individuals within the population
          */
-        size_t eliteSize() const;
+        Population::size_type eliteSize() const;
 
 
         /*!
@@ -283,7 +292,7 @@ namespace wzalgorithm {
          *
          * \return `*this`
          */
-        REvol& eliteSize(size_t size);
+        REvol& eliteSize(Population::size_type size);
 
 
         /*!
@@ -445,7 +454,7 @@ namespace wzalgorithm {
          *
          * \return Number of epochs
          */
-        size_t measurementEpochs() const;
+        epoch_t measurementEpochs() const;
 
 
         /*!
@@ -455,7 +464,7 @@ namespace wzalgorithm {
          *
          * \return `*this`
          */
-        REvol& measurementEpochs(size_t epochs);
+        REvol& measurementEpochs(epoch_t epochs);
 
 
         /*!
@@ -467,31 +476,34 @@ namespace wzalgorithm {
          *
          * \return The population, including the elite
          */
-        Population generateInitialPopulation(
-                detail::Individual const& origin);
+        Population generateInitialPopulation(Individual const& origin);
 
 
         /*!
-         * \brief Creates a new individual as part of the combination
-         *  and crossover process
+         * \brief Modifies the given individual by a combination of two
+         *  individuals from the given population range.
          *
          * This method generates a new offspring by crossover and
-         * mutation. It selects an of the elite and one normal object.
+         * mutation. It selects an of the elite and one normal object from the
+         * supplied range of individuals.
          *
          * In the process, it also modifies existing objects in order to
          * re-train them.
          *
-         * \param population The current population; must be sorted
+         * This is a variant of creating a new offspring from to individuals;
+         * however, simply for efficiency, this modifies an existing
+         * individual object instead of creating a new one (and discarding an
+         * old one later on).
+         *
+         * \param[inout] individual The individual to modify
+         *
+         * \param[inout] population The current population; must be sorted
          *
          * \param[in] currentSuccess The momentary success rate
-         *
-         * \return A pair containing the two individuals out of the
-         *  population that were used to modifiy the given target
-         *  individual. The frist reference denotes the better, the second
-         *  the other individual that were chosen.
          */
-        void modifyWorstIndividual(
-                Population& population,
+        void modifyIndividual(
+                Individual& individual,
+                PopulationRange population,
                 double currentSuccess);
 
 
@@ -506,31 +518,29 @@ namespace wzalgorithm {
          *
          * \return The best individual
          */
-        detail::REvolResult run(
-                detail::Individual const& origin,
-                Evaluator const& succeeds);
+        Result run(Individual const& origin, Evaluator const& succeeds);
 
 
     private:
 
 
         //! The maximum number of iterations this alorithm runs
-        std::size_t m_maxEpochs;
+        epoch_t m_maxEpochs;
 
 
         /*!
          * \brief Maximum number of epochs that may pass without a global
          *  improvement
          */
-        std::size_t m_maxNoSuccessEpochs;
+        epoch_t m_maxNoSuccessEpochs;
 
 
         //! \brief Overall size of the population
-        std::size_t m_populationSize;
+        Population::size_type m_populationSize;
 
 
         //! \brief Size of the elite, contained in the population
-        std::size_t m_eliteSize;
+        Population::size_type m_eliteSize;
 
 
         //! \brief Weight of implicit gradient information.
@@ -561,7 +571,7 @@ namespace wzalgorithm {
 
 
         //! \brief Number of epochs to apply to the dc1 method
-        std::size_t m_measurementEpochs;
+        epoch_t m_measurementEpochs;
 
 
         /*!
@@ -614,7 +624,7 @@ namespace wzalgorithm {
 namespace std {
     ostream& operator<<(
             ostream& os,
-            wzalgorithm::detail::Individual const& individual);
+            wzalgorithm::REvol::Individual const& individual);
     ostream& operator<<(
             ostream &os,
             wzalgorithm::REvol::Population const& v);
@@ -623,4 +633,4 @@ namespace std {
             wzalgorithm::REvol const& algorithm);
 } // namespace std
 
-#endif // WINZENT_ALGORITHM_REVOL_H_
+#endif // WZALGORITHM_REVOL_H_

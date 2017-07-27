@@ -12,7 +12,7 @@ using std::cos;
 using std::sin;
 
 using wzalgorithm::REvol;
-using wzalgorithm::detail::Individual;
+using Individual = wzalgorithm::REvol::Individual;
 
 
 double REvolTest::peaks(double x, double y)
@@ -40,7 +40,7 @@ TEST_F(REvolTest, testPeaks)
 {
     REvol revol;
     revol
-            .ebmax(1.0)
+            .ebmax(10.0)
             .gradientWeight(1.8)
             .populationSize(30)
             .eliteSize(3)
