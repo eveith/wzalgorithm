@@ -1,0 +1,78 @@
+#
+# spec file for package wzalgorithm
+#
+# Copyright (c) 2017 SUSE LINUX GmbH, Nuernberg, Germany.
+#
+# All modifications and additions to the file contributed by third parties
+# remain the property of their copyright owners, unless otherwise agreed
+# upon. The license for this file, and modifications and additions to the
+# file, is the same license as for the pristine package itself (unless the
+# license for the pristine package is not an Open Source License, in which
+# case the license is the MIT License). An "Open Source License" is a
+# license that conforms to the Open Source Definition (Version 1.9)
+# published by the Open Source Initiative.
+
+# Please submit bugfixes or comments via http://bugs.opensuse.org/
+#
+
+
+Name:           wzalgorithm
+Version:        @VERSION@
+Release:        0
+Summary:        A optimization algorithms library
+License:        GPL-3.0
+Group:          System/Libraries
+Url:            https://github.com/eveith/wzalgorithm
+Source0:        https://github.com/eveith/wzalgorithm/releases/download/v%{version}/%{name}-%{version}.tar.gz
+BuildRequires:  cmake, make, gcc-c++, pkg-config, boost-devel
+BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+
+%description
+This shared library contains optimization algorithms that were part of the
+Winzent project. Currently, these are:
+
+  - Standard Particle Swarm Optimization (SPSO) 2011
+  - The Multipart Evolutionary Strategy (REvol)
+
+REvol has been described in the following scientific publication:
+
+Ruppert, Martin, Eric MSP Veith, and Bernd Steinbach. "An Evolutionary
+Training Algorithm for Artificial Neural Networks with Dynamic Offspring
+Spread and Implicit Gradient Information."
+
+
+%package        devel
+Summary:        Development files for %{name}
+Group:          Development/Libraries/
+Requires:       %{name} = %{version}
+
+%description    devel
+The %{name}-devel package contains libraries and header files for
+developing applications that use %{name}.
+
+%prep
+%setup -q
+
+%build
+%cmake
+%make_jobs
+
+%install
+%make_install
+find %{buildroot} -type f -name "*.la" -delete -print
+
+%post -p /sbin/ldconfig
+%postun -p /sbin/ldconfig
+
+%files
+%defattr(-,root,root)
+%doc README.md VERSION COPYING
+%{_libdir}/*.so.*
+
+%files devel
+%defattr(-,root,root)
+%{_includedir}/*
+%{_libdir}/*.so
+%{_libdir}/pkgconfig/*.pc
+
+%changelog
