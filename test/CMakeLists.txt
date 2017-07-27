@@ -10,10 +10,12 @@ set(test-wzalgorithm_HEADERS
 
 set(benchmark-wzalgorithm_SOURCES
     REvolBenchmark.cpp
+    ParticleSwarmOptimizationBenchmark.cpp
     benchmark_wzalgorithm.cpp)
 
 set(benchmark-wzalgorithm_HEADERS
-    REvolBenchmark.h)
+    REvolBenchmark.h
+    ParticleSwarmOptimizationBenchmark.h)
 
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)

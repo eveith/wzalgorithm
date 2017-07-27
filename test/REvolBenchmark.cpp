@@ -4,6 +4,8 @@
 
 #include <benchmark/benchmark.h>
 
+#include "ackley.h"
+
 #include "REvol.h"
 #include "REvolBenchmark.h"
 
@@ -14,43 +16,21 @@ using std::sqrt;
 using std::accumulate;
 
 using wzalgorithm::REvol;
-using wzalgorithm::detail::Individual;
+using Individual = wzalgorithm::REvol::Individual;
 
 
-double REvolBenchmark::ackley(std::vector<double> const& x) const
-{
-    static double a = 20.0;
-    static double b = 0.2;
-    static double c = 2.0 * M_PI;
-    auto n = x.size();
-
-    return -a * exp(-b * sqrt(1./n * accumulate(
-                x.begin(),
-                x.end(),
-                0.0,
-                [](double sum, double x) { return sum + pow(x, 2); })))
-            - exp(1./n * accumulate(
-                x.begin(),
-                x.end(),
-                0.0,
-                [](double sum, double x) { return sum + cos(c * x); }))
-            + a
-            + exp(1.0);
-}
-
-
-BENCHMARK_F(REvolBenchmark, ackleyBenchmark)(benchmark::State& state)
+static void REvolAckleyBenchmark(benchmark::State& state)
 {
     while (state.KeepRunning()) {
         REvol revol;
         revol
                 .ebmax(5.0)
                 .gradientWeight(1.0)
-                .populationSize(33)
-                .eliteSize(3)
-                .successWeight(1.2)
-                .measurementEpochs(500)
-                .startTTL(100)
+                .populationSize(40)
+                .eliteSize(4)
+                .successWeight(1.0)
+                .measurementEpochs(100)
+                .startTTL(120)
                 .maxEpochs(5000)
                 .maxNoSuccessEpochs(5000);
 
@@ -58,11 +38,11 @@ BENCHMARK_F(REvolBenchmark, ackleyBenchmark)(benchmark::State& state)
         i.parameters = {
             5.0, 5.0, 7.0, 5.0, 5.0, 2.0, 6.42, 2.67, 1.998, 19.3 };
         i.scatter = {
-            10.0, 10.0, 10., 10., 10., 10., 10., 10., 10., 10. };
+            32., 32., 32., 32., 32., 32., 32., 32., 32., 32. };
 
         bool success = false;
-        revol.run(i, [this, &success](Individual& i) {
-            double r = this->ackley(i.parameters);
+        revol.run(i, [&success](Individual& i) {
+            double r = ackley(i.parameters);
             i.restrictions[0] = r;
 
             success |= (i.restrictions[0] + 1.0 < 1.0000000001);
@@ -70,3 +50,4 @@ BENCHMARK_F(REvolBenchmark, ackleyBenchmark)(benchmark::State& state)
         });
     }
 }
+BENCHMARK(REvolAckleyBenchmark);
