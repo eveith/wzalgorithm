@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
-project(wzalgorithm VERSION 0.7.0 LANGUAGES CXX)
+project(wzalgorithm VERSION 0.8.0 LANGUAGES CXX)
 
 
 include(GNUInstallDirs)

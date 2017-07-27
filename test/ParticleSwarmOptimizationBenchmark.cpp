@@ -15,8 +15,8 @@ using std::sqrt;
 using std::accumulate;
 
 
-using wzalgorithm::detail::Particle;
 using wzalgorithm::ParticleSwarmOptimization;
+using Particle = wzalgorithm::ParticleSwarmOptimization::Particle;
 
 
 

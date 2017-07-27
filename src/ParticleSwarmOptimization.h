@@ -15,6 +15,17 @@
 namespace wzalgorithm {
         namespace detail {
 
+    }
+
+
+    class ParticleSwarmOptimization
+    {
+    public:
+
+
+        //! \brief The data type to count the number of epochs/iterations
+        typedef std::size_t epoch_t;
+
 
         /*!
          * \brief A particle in the particle swarm
@@ -33,11 +44,7 @@ namespace wzalgorithm {
          */
         struct Particle
         {
-            //! The vector type used here.
-            typedef wzalgorithm::vector_t Vector;
-
-
-            //! The best fitness this particle ever obtained
+            //! \brief The best fitness this particle ever obtained
             double bestFitness;
 
 
@@ -50,56 +57,39 @@ namespace wzalgorithm {
 
 
             //! The best position, i.e., the source of the #bestFitness
-            Vector bestPosition;
+            vector_t bestPosition;
 
 
             /*!
              * \brief The current position, i.e., the parameters to the
              *  objective function
              */
-            Vector currentPosition;
+            vector_t currentPosition;
 
 
             //! The particle's velocity
-            Vector velocity;
+            vector_t velocity;
 
 
             /*!
              * \brief The smaller-than operator, applied to the particle's
              *  fitness.
              */
-            bool operator <(Particle const& rhs) const {
+            bool operator <(Particle const& rhs) const
+            {
                 return bestFitness < rhs.bestFitness;
             }
         };
 
 
-        struct ParticleSwarmOptimizationResult
+        struct Result
         {
             //! The best particle
             Particle bestParticle;
 
             //! Number of iterations the algorithm ran
-            size_t iterationsUsed;
+            epoch_t iterationsUsed;
         };
-    }
-
-
-    class ParticleSwarmOptimization
-    {
-    public:
-
-
-        //! Pre-defined default swarm size (cp. SPSO 2007)
-        static const size_t DEFAULT_SWARM_SIZE = 40;
-
-
-        //! The contant C, ~1.193
-        static const double C;
-
-
-        //! The contant W, ~0.721
-        static const double W;
 
 
         /*!
@@ -122,21 +112,34 @@ namespace wzalgorithm {
          *
          * \sa #run()
          */
-        typedef std::function<bool(detail::Particle&)> Evaluator;
+        typedef std::function<bool(Particle&)> Evaluator;
 
 
-        //! The Swarm data type
-        typedef std::vector<detail::Particle> Swarm;
+        //! \brief The Swarm data type
+        typedef std::vector<Particle> Swarm;
 
 
-        //! Three neighbors to a particle
-        typedef std::tuple<size_t, size_t, size_t> NeighborIndices;
+        //! \brief Three neighbors to a particle
+        typedef std::tuple<
+                Swarm::size_type,
+                Swarm::size_type,
+                Swarm::size_type> NeighborIndices;
 
 
-        /*!
-         * \brief A particle neighborhood
-         */
-        typedef std::vector<detail::Particle const*> Neighborhood;
+        //! \brief A particle neighborhood
+        typedef std::vector<Particle const*> Neighborhood;
+
+
+        //! \brief Pre-defined default swarm size (cp. SPSO 2007)
+        static const Swarm::size_type DEFAULT_SWARM_SIZE = 40;
+
+
+        //! \brief The contant C, ~1.193
+        static const double C;
+
+
+        //! \brief The contant W, ~0.721
+        static const double W;
 
 
         ParticleSwarmOptimization();
@@ -149,7 +152,7 @@ namespace wzalgorithm {
          *
          * \sa DEFAULT_SWARM_SIZE
          */
-        size_t swarmSize() const;
+        Swarm::size_type swarmSize() const;
 
 
         /*!
@@ -159,7 +162,7 @@ namespace wzalgorithm {
          *
          * \return `*this`
          */
-        ParticleSwarmOptimization &swarmSize(size_t size);
+        ParticleSwarmOptimization& swarmSize(Swarm::size_type size);
 
 
         /*!
@@ -168,7 +171,7 @@ namespace wzalgorithm {
          *
          * \return The maximum number of iterations
          */
-        size_t maxIterations() const;
+        epoch_t maxIterations() const;
 
 
         /*!
@@ -179,7 +182,7 @@ namespace wzalgorithm {
          *
          * \return `*this`
          */
-        ParticleSwarmOptimization &maxIterations(size_t iterations);
+        ParticleSwarmOptimization& maxIterations(epoch_t iterations);
 
 
         /*!
@@ -229,7 +232,9 @@ namespace wzalgorithm {
          *
          * \return The indices of the particle's neighbors
          */
-        NeighborIndices neighbors(size_t particleIndex, size_t swarmSize)
+        NeighborIndices neighbors(
+                Swarm::size_type particleIndex,
+                Swarm::size_type swarmSize)
                 const;
 
 
@@ -260,13 +265,15 @@ namespace wzalgorithm {
          *
          * \sa Evaluator
          */
-        Swarm createSwarm(size_t dimension, Evaluator const& evaluator);
+        Swarm createSwarm(
+                vector_t::size_type dimension,
+                Evaluator const& evaluator);
 
 
         /*!
          * \brief Applies the algorithm with the configured parameters
          *
-         * \param[in] dimensions The dimensions of the search space.
+         * \param[in] dimension The dimension of the search space.
          *
          * \param[in] evalutor The objective evaluation function, i.e.,
          *  the fitness function
@@ -275,9 +282,7 @@ namespace wzalgorithm {
          *
          * \sa Evaluator
          */
-        detail::ParticleSwarmOptimizationResult run(
-                size_t dimension,
-                Evaluator const& evaluator);
+        Result run(vector_t::size_type dimension, Evaluator const& evaluator);
 
 
     private:
@@ -312,7 +317,7 @@ namespace wzalgorithm {
 namespace std {
     static ostream& operator <<(
             ostream& os,
-            wzalgorithm::detail::Particle const& particle)
+            wzalgorithm::ParticleSwarmOptimization::Particle const& particle)
     {
         os
                 << "Particle("

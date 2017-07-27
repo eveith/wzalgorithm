@@ -14,8 +14,8 @@ using std::exp;
 using std::cos;
 using std::sin;
 
-using wzalgorithm::detail::Particle;
 using wzalgorithm::ParticleSwarmOptimization;
+using Particle = wzalgorithm::ParticleSwarmOptimization::Particle;
 
 
 TEST(ParticleSwarmOptimizationTest, testPeaks)
@@ -24,7 +24,7 @@ TEST(ParticleSwarmOptimizationTest, testPeaks)
     pso.lowerBoundary(-10.0).upperBoundary(10.0).maxIterations(5000);
 
     bool success = false;
-    pso.run(2, [&success](Particle &particle) {
+    pso.run(2, [&success](Particle& particle) {
         double r = peaks(
                 particle.currentPosition[0],
                 particle.currentPosition[1]);

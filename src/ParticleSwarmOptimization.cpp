@@ -9,6 +9,10 @@
 #include "ParticleSwarmOptimization.h"
 
 
+using std::begin;
+using std::end;
+
+
 namespace wzalgorithm {
     const double ParticleSwarmOptimization::C = 0.5 + std::log(2);
     const double ParticleSwarmOptimization::W = 1.0 / (2.0 * std::log(2));
@@ -22,28 +26,30 @@ namespace wzalgorithm {
     }
 
 
-    size_t ParticleSwarmOptimization::swarmSize() const
+    ParticleSwarmOptimization::Swarm::size_type
+    ParticleSwarmOptimization::swarmSize() const
     {
         return m_swarmSize;
     }
 
 
     ParticleSwarmOptimization& ParticleSwarmOptimization::swarmSize(
-            size_t size)
+            ParticleSwarmOptimization::Swarm::size_type size)
     {
         m_swarmSize = size;
         return *this;
     }
 
 
-    size_t ParticleSwarmOptimization::maxIterations() const
+    ParticleSwarmOptimization::epoch_t
+    ParticleSwarmOptimization::maxIterations() const
     {
         return m_maxIterations;
     }
 
 
     ParticleSwarmOptimization& ParticleSwarmOptimization::maxIterations(
-            size_t iterations)
+            ParticleSwarmOptimization::epoch_t iterations)
     {
         m_maxIterations = iterations;
         return *this;
@@ -81,8 +87,8 @@ namespace wzalgorithm {
 
     ParticleSwarmOptimization::NeighborIndices
     ParticleSwarmOptimization::neighbors(
-            size_t particleIndex,
-            size_t swarmSize)
+            ParticleSwarmOptimization::Swarm::size_type particleIndex,
+            ParticleSwarmOptimization::Swarm::size_type swarmSize)
             const
     {
         return std::make_tuple(
@@ -110,15 +116,15 @@ namespace wzalgorithm {
 
     ParticleSwarmOptimization::Swarm
     ParticleSwarmOptimization::createSwarm(
-            size_t dimension,
+            vector_t::size_type dimension,
             Evaluator const& evaluator)
     {
         Swarm swarm;
 
         for (size_t i = 0; i != swarmSize(); ++i) {
-            detail::Particle particle;
+            ParticleSwarmOptimization::Particle particle;
 
-            for (size_t d = 0; d != dimension; ++d) {
+            for (vector_t::size_type d = 0; d != dimension; ++d) {
                 double p = lowerBoundary()
                         + m_uniformDistribution(m_randomNumberGenerator)
                             * (upperBoundary() - lowerBoundary());
@@ -142,21 +148,20 @@ namespace wzalgorithm {
     }
 
 
-    detail::ParticleSwarmOptimizationResult
+    ParticleSwarmOptimization::Result
     ParticleSwarmOptimization::run(
-            size_t dimension,
+            vector_t::size_type dimension,
             Evaluator const& evaluator)
     {
         Swarm swarm = createSwarm(dimension, evaluator);
-        detail::Particle* best;
+        std::sort(begin(swarm), end(swarm));
 
-        std::sort(swarm.begin(), swarm.end());
-        best = &(swarm.front());
-        bool success = false;
-        size_t i = 0;
+        auto* best      = &(swarm.front());
+        bool success    = false;
+        epoch_t i       = 0;
 
         while (i < maxIterations() && ! success) {
-            for (size_t k = 0; k != swarm.size(); ++k) {
+            for (Swarm::size_type k = 0; k != swarm.size(); ++k) {
                 auto &particle = swarm[k];
                 auto neighborIndices = neighbors(k, swarm.size());
                 auto bestNeighborhoodPosition = bestPreviousBestPosition({
@@ -164,8 +169,9 @@ namespace wzalgorithm {
                         &(swarm[std::get<1>(neighborIndices)]),
                         &(swarm[std::get<2>(neighborIndices)]) });
 
-                for (detail::Particle::Vector::size_type j = 0;
-                        j != particle.currentPosition.size(); ++j) {
+                for (vector_t::size_type j = 0;
+                        j != particle.currentPosition.size();
+                        ++j) {
                     bool isBestInNeighborhood = (particle.bestPosition
                             == bestNeighborhoodPosition);
                     const double v = particle.velocity[j];
