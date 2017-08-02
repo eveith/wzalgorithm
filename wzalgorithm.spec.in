@@ -23,8 +23,9 @@ Summary:        A optimization algorithms library
 License:        GPL-3.0
 Group:          System/Libraries
 Url:            https://github.com/eveith/wzalgorithm
-Source0:        https://github.com/eveith/wzalgorithm/releases/download/v%{version}/%{name}-%{version}.tar.gz
-BuildRequires:  cmake, make, gcc-c++, pkg-config, boost-devel
+Source0:        https://github.com/eveith/wzalgorithm/archive/v%{version}.tar.gz
+BuildRequires:  cmake, make, gcc-c++, pkg-config
+BuildRequires:  boost-devel >= 1.58.0, googletest-devel
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
 %description
@@ -36,7 +37,7 @@ Winzent project. Currently, these are:
 
 REvol has been described in the following scientific publication:
 
-Ruppert, Martin, Eric MSP Veith, and Bernd Steinbach. "An Evolutionary
+Martin Ruppert, Eric MSP Veith, and Bernd Steinbach. "An Evolutionary
 Training Algorithm for Artificial Neural Networks with Dynamic Offspring
 Spread and Implicit Gradient Information."
 
@@ -50,29 +51,36 @@ Requires:       %{name} = %{version}
 The %{name}-devel package contains libraries and header files for
 developing applications that use %{name}.
 
+
 %prep
 %setup -q
+
 
 %build
 %cmake
 %make_jobs
 
+
 %install
-%make_install
+%cmake_install
 find %{buildroot} -type f -name "*.la" -delete -print
+
 
 %post -p /sbin/ldconfig
 %postun -p /sbin/ldconfig
 
+
 %files
 %defattr(-,root,root)
-%doc README.md VERSION COPYING
+%doc README.md COPYING
 %{_libdir}/*.so.*
+
 
 %files devel
 %defattr(-,root,root)
 %{_includedir}/*
 %{_libdir}/*.so
 %{_libdir}/pkgconfig/*.pc
+
 
 %changelog

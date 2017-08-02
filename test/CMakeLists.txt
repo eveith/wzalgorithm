@@ -39,6 +39,7 @@ target_include_directories(test_wzalgorithm
 target_link_libraries(test_wzalgorithm
     m
     stdc++
+    pthread
     ${Boost_LIBRARIES}
     ${GTEST_LIBRARIES}
     wzalgorithm)

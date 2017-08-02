@@ -457,10 +457,10 @@ namespace wzalgorithm {
 
         // Select proper individuals:
 
-        auto eliteIdx = abs(static_cast<ptrdiff_t>(
+        int eliteIdx = abs(static_cast<ptrdiff_t>(
                 m_rnDistribution(m_randomNumberGenerator) % eliteSize()
                     - m_rnDistribution(m_randomNumberGenerator)%eliteSize()));
-        auto otherIdx(m_rnDistribution(m_randomNumberGenerator)%nIndividuals);
+        int otherIdx(m_rnDistribution(m_randomNumberGenerator)%nIndividuals);
 
         if (*(population.first + otherIdx) < *(population.first + eliteIdx)) {
             std::swap(eliteIdx, otherIdx);

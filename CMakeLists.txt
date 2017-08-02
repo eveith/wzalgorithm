@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
-project(wzalgorithm VERSION 0.8.0 LANGUAGES CXX)
+project(wzalgorithm VERSION 0.8.0.1 LANGUAGES CXX)
 
 
 include(GNUInstallDirs)
@@ -24,12 +24,12 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}/src")
 add_custom_target(srctar
     COMMAND tar
         "-C" "${CMAKE_CURRENT_SOURCE_DIR}"
-        "-vcJf" "wzalgorithm-${WZALGORITHM_VERSION}.tar.xz"
-        "--xform='s,^,wzalgorithm-${WZALGORITHM_VERSION}/,'"
+        "-vczf" "wzalgorithm-${wzalgorithm_VERSION}.tar.gz"
+        "--xform='s,^,wzalgorithm-${wzalgorithm_VERSION}/,'"
         "--exclude-vcs" "--exclude-backups"
         "--exclude=Makefile" "--exclude='*.so*'"
         "src" "test" "CMakeLists.txt"
-        "README" "COPYING" "VERSION.in" "wzalgorithm.spec.in")
+        "README.md" "COPYING" "VERSION.in" "wzalgorithm.spec.in")
 
 
 add_subdirectory(src)

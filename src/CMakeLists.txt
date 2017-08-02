@@ -3,7 +3,6 @@ set(wzalgorithm_SOURCES
     ParticleSwarmOptimization.cpp)
 
 set(wzalgorithm_HEADERS
-    config.h
     REvol.h
     ParticleSwarmOptimization.h)
 
@@ -24,6 +23,7 @@ target_include_directories(wzalgorithm
 target_link_libraries(wzalgorithm
     m
     stdc++
+    pthread
     ${Boost_LIBRARIES})
 
 set_target_properties(wzalgorithm
@@ -45,7 +45,11 @@ CONFIGURE_FILE(
 install(TARGETS wzalgorithm
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-install(FILES ${wzalgorithm_HEADERS} DESTINATION include/winzent/algorithm)
+install(
+    FILES
+        ${wzalgorithm_HEADERS}
+        ${CMAKE_CURRENT_BINARY_DIR}/config.h
+    DESTINATION include/wzalgorithm)
 install(
     FILES ${CMAKE_CURRENT_BINARY_DIR}/wzalgorithm.pc
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
