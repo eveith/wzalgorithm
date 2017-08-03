@@ -38,8 +38,8 @@ SET(PKG_CONFIG_LIBS "-L\${libdir} ${wzalgorithm_LIBRARIES} -lwzalgorithm")
 SET(PKG_CONFIG_CFLAGS "-I\${includedir}")
 
 CONFIGURE_FILE(
-    ${CMAKE_CURRENT_SOURCE_DIR}/wzalgorithm.pc.in
-    ${CMAKE_CURRENT_BINARY_DIR}/wzalgorithm.pc)
+    ${CMAKE_CURRENT_SOURCE_DIR}/libwzalgorithm.pc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/libwzalgorithm.pc)
 
 
 install(TARGETS wzalgorithm
@@ -51,5 +51,5 @@ install(
         ${CMAKE_CURRENT_BINARY_DIR}/config.h
     DESTINATION include/wzalgorithm)
 install(
-    FILES ${CMAKE_CURRENT_BINARY_DIR}/wzalgorithm.pc
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/libwzalgorithm.pc
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)

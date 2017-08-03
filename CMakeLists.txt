@@ -24,8 +24,8 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}/src")
 add_custom_target(srctar
     COMMAND tar
         "-C" "${CMAKE_CURRENT_SOURCE_DIR}"
-        "-vczf" "wzalgorithm-${wzalgorithm_VERSION}.tar.gz"
-        "--xform='s,^,wzalgorithm-${wzalgorithm_VERSION}/,'"
+        "-vczf" "libwzalgorithm-${wzalgorithm_VERSION}.tar.gz"
+        "--xform='s,^,libwzalgorithm-${wzalgorithm_VERSION}/,'"
         "--exclude-vcs" "--exclude-backups"
         "--exclude=Makefile" "--exclude='*.so*'"
         "src" "test" "CMakeLists.txt"
