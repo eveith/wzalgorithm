@@ -15,7 +15,7 @@ namespace wzalgorithm {
 
 
 namespace std {
-    static ostream& operator <<(
+    inline ostream& operator <<(
             ostream& os,
             wzalgorithm::vector_t const& vec)
     {
