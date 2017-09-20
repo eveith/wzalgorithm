@@ -13,9 +13,6 @@
 
 
 namespace wzalgorithm {
-        namespace detail {
-
-    }
 
 
     class ParticleSwarmOptimization
