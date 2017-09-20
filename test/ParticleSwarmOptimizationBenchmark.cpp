@@ -23,17 +23,17 @@ using Particle = wzalgorithm::ParticleSwarmOptimization::Particle;
 
 static void PsoAckleyBenchmark(benchmark::State& state)
 {
+    const size_t dimensions = 10;
+    auto succeeds = [](Particle& particle) {
+        particle.currentFitness = ::ackley(particle.currentPosition);
+        return particle.currentFitness + 1.0 < 1.0000000001;
+    };
+
     while (state.KeepRunning()) {
         ParticleSwarmOptimization pso;
-        pso.lowerBoundary(-32.0).upperBoundary(32.0).maxIterations(50000);
-
-        bool success = false;
-        auto p = pso.run(10, [&success](Particle& particle) {
-            double r = ackley(particle.currentPosition);
-            success |= (r + 1.0 < 1.0000000001);
-            particle.currentFitness = r;
-            return success;
-        });
+        pso
+                .maxIterations(50000)
+                .run(dimensions, succeeds);
     }
 }
 BENCHMARK(PsoAckleyBenchmark);
