@@ -16,6 +16,8 @@ using std::end;
 namespace wzalgorithm {
     const double ParticleSwarmOptimization::C = 0.5 + std::log(2);
     const double ParticleSwarmOptimization::W = 1.0 / (2.0 * std::log(2));
+    const ParticleSwarmOptimization::Swarm::size_type
+            ParticleSwarmOptimization::DEFAULT_SWARM_SIZE;
 
 
     ParticleSwarmOptimization::ParticleSwarmOptimization():
