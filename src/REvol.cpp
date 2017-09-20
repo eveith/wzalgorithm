@@ -573,6 +573,7 @@ namespace wzalgorithm {
                 goto out;
             }
         }
+        population.sort();
 
         // Main loop:
 
@@ -591,7 +592,6 @@ namespace wzalgorithm {
                 break;
             }
 
-            population.sort();
             bestIndividual = &(population.front());
             const auto& worstIndividual = population.at(population.size()-2);
 
