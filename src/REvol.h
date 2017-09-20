@@ -8,6 +8,7 @@
 #include <boost/random.hpp>
 #include <boost/ptr_container/ptr_vector.hpp>
 
+#include "Result.h"
 #include "config.h"
 
 
@@ -145,17 +146,6 @@ namespace wzalgorithm {
              *  one, `false` otherwise
              */
             bool operator <(Individual const& other) const;
-        };
-
-
-        //! \brief The result of a run of the REvol algorithm
-        struct Result
-        {
-            //! \brief The best individual
-            Individual bestIndividual;
-
-            //! \brief Number of iterations the algorithm took
-            std::size_t iterationsUsed;
         };
 
 
@@ -531,12 +521,12 @@ namespace wzalgorithm {
          * \sa REvol::Result
          */
         template <typename Evaluator>
-        REvol::Result run(REvol::Individual const& origin, Evaluator succeeds)
+        Result run(REvol::Individual const& origin, Evaluator succeeds)
         {
             if (!hasSensibleTrainingParameters()) {
                 throw "Training parameters have no sensible values, "
                             "won't train.";
-                return { origin, 0 };
+                return {std::numeric_limits<double>::infinity(), vector_t()};
             }
 
             REvol::epoch_t lastSuccess  = 0;
@@ -613,8 +603,9 @@ namespace wzalgorithm {
                     && epoch - lastSuccess <= maxNoSuccessEpochs());
 
             out:
-            REvol::Result result = { *bestIndividual, epoch };
-            return result;
+            return {
+                bestIndividual->restrictions[0],
+                bestIndividual->parameters };
         }
 
 

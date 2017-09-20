@@ -55,7 +55,7 @@ TEST(REvolTest, testPeaks)
     });
 
     ASSERT_TRUE(success);
-    ASSERT_TRUE(result.bestIndividual.restrictions[0] < -6.0);
+    ASSERT_TRUE(result.error < -6.0);
 }
 
 
@@ -88,7 +88,7 @@ TEST(REvolTest, testAckley)
 
     ASSERT_NEAR(ackley(wzalgorithm::vector_t{ 0.0, 0.0 }), 0.0, 1e-6);
     ASSERT_TRUE(success);
-    ASSERT_TRUE(result.bestIndividual.restrictions[0] + 1.0 < 1.000000001);
+    ASSERT_TRUE(result.error + 1.0 < 1.000000001);
 }
 
 
@@ -108,7 +108,8 @@ TEST(REvolTest, testCrossInTray)
 
     auto result = revol.run(origin, succeeds);
 
-    ASSERT_TRUE(succeeds(result.bestIndividual));
+    ASSERT_TRUE(::crossInTray(result.parameters[0], result.parameters[1])
+            < 2.062);;
 }
 
 
