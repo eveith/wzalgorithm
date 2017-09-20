@@ -446,6 +446,29 @@ namespace wzalgorithm {
 
 
         /*!
+         * \brief Generates the origin individual with random parameter and
+         *  scatter vector that can be passed to #run()
+         *
+         * This method generates the origin or base Individual that needs to
+         * be passed to run. This method uses the #eamin() and #ebmax() values
+         * to initialize it scatter and parameter vector from random values.
+         *
+         * This method thus serves as a short-cut: Instead of generating and
+         * passing a custom origin object, one can be generated here. Its
+         * values will be in a sensible range according to the actual
+         * optimization process. However, a tailor-made base object can
+         * help to speed up the optimization process, as it is the case
+         * with neural networks.
+         *
+         * \param dimensions The size of the paramter and scatter vectors
+         *
+         * \return An origin object with its scatter and parameter vector
+         *  initialized with random values
+         */
+        Individual generateOrigin(vector_t::size_type dimensions);
+
+
+        /*!
          * \brief Generates the initial population from the supplied base
          *  network
          *
@@ -534,6 +557,7 @@ namespace wzalgorithm {
 
             // Main loop:
 
+            using std::make_pair;
             do {
                 // Modify the (currently) worst individual:
 
@@ -541,7 +565,7 @@ namespace wzalgorithm {
 
                 modifyIndividual(
                         newIndividual,
-                        std::make_pair(begin(population), end(population) -1),
+                        make_pair(begin(population), end(population) - 1),
                         currentSuccess);
 
                 if (succeeds(newIndividual)) {
@@ -550,7 +574,8 @@ namespace wzalgorithm {
                 }
 
                 bestIndividual = &(population.front());
-                const auto& worstIndividual = population.at(population.size()-2);
+                const auto& worstIndividual = population.at(
+                        population.size() - 2);
 
                 // Check for global or, at least, local improvement:
 
@@ -571,12 +596,13 @@ namespace wzalgorithm {
                 if (newIndividual.isBetterThan(*bestIndividual)) {
                     lastSuccess = epoch;
                     bestIndividual = &newIndividual;
-                    bestIndividual->timeToLive = static_cast<ptrdiff_t>(epoch);
+                    bestIndividual->timeToLive = static_cast<ptrdiff_t>(
+                            epoch);
                 }
 
                 // Sort the list and do a bit of caretaking:
 
-                agePopulation(std::make_pair(begin(population), end(population)));
+                agePopulation(make_pair(begin(population), end(population)));
                 population.sort();
                 currentSuccess = pt1(
                         currentSuccess,

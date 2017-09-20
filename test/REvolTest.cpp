@@ -173,3 +173,18 @@ TEST(REvolTest, testSortPopulation)
     ASSERT_EQ(population.at(1), *i2);
     ASSERT_EQ(population.at(2), *i3);
 }
+
+
+TEST(REvolTest, testGenerateOrigin)
+{
+    size_t d = 5;
+    auto o = REvol().generateOrigin(d);
+
+    ASSERT_EQ(d, o.scatter.size());
+    ASSERT_EQ(o.parameters.size(), o.scatter.size());
+
+    for (size_t i = 0; i != d; ++i) {
+        ASSERT_TRUE(o.scatter[i] != 0);
+        ASSERT_TRUE(o.parameters[i] != 0);
+    }
+}

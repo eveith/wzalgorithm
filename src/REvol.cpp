@@ -403,6 +403,24 @@ namespace wzalgorithm {
     }
 
 
+    REvol::Individual REvol::generateOrigin(vector_t::size_type dimensions)
+    {
+        assert(dimensions > 0);
+
+        Individual origin;
+        origin.timeToLive = startTTL();
+        origin.scatter.reserve(dimensions);
+        origin.parameters.reserve(dimensions);
+
+        for (vector_t::size_type i = 0; i != dimensions; ++i) {
+            origin.scatter.push_back(frandom() - frandom());
+            origin.parameters.push_back(ebmax() * (frandom() - frandom()));
+        }
+
+        return origin;
+    }
+
+
     REvol::Population REvol::generateInitialPopulation(
             Individual const& origin)
     {
