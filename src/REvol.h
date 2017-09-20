@@ -159,7 +159,6 @@ namespace wzalgorithm {
         };
 
 
-
         //! \brief Auto-deleting vector for the population
         typedef boost::ptr_vector<Individual> Population;
 
@@ -172,27 +171,6 @@ namespace wzalgorithm {
 
         //! \brief The data type to count the number of epochs/iterations
         typedef std::size_t epoch_t;
-
-
-        /*!
-         * \brief User-supplied function for evaluation of individuals
-         *
-         * This function is supplied by the caller and used to evaluate
-         * individuals. It has write-access to the individual it shall
-         * evaluate.
-         *
-         * Its return type signifies the individual's success or failure
-         * to solve the problem presented to it by the user. As long as
-         * this function returns `false`, the algorithm continues. Once
-         * the function returns `true`, REvol terminates, since the
-         * user-supplied restrictions have all been fulfilled.
-         *
-         * \param[inout] individual The individual that is being evaluated
-         *
-         * \return `true` if the individual's evaluation satisfies the
-         *  user-determined success criterion, `false` otherwise
-         */
-        typedef std::function<bool (Individual&)> Evaluator;
 
 
         //! A time-discrete LTI system of first order
@@ -510,6 +488,15 @@ namespace wzalgorithm {
         /*!
          * \brief Executes the multi-part evoluationary algorithm
          *
+         * \tparam Evaluator The user-supplied predicate for evaluation of
+         *  individuals: Its return type signifies the individual's success
+         *  or failure to solve the problem presented to it by the user.
+         *  As long as this function returns `false`, the algorithm continues.
+         *  Once the function returns `true`, REvol terminates, since the
+         *  user-supplied restrictions have all been fulfilled. It has thus
+         *  write-access to the individual it shall evaluate, so that it can
+         *  modify the restrictions vector of the individual.
+         *
          * \param[in] origin The origin individual
          *
          * \param[in] succeeds The evaluating predicate that returns
@@ -517,8 +504,92 @@ namespace wzalgorithm {
          *  goal, or `false` if the search must go on.
          *
          * \return The best individual
+         *
+         * \sa REvol::Result
          */
-        Result run(Individual const& origin, Evaluator const& succeeds);
+        template <typename Evaluator>
+        REvol::Result run(REvol::Individual const& origin, Evaluator succeeds)
+        {
+            if (!hasSensibleTrainingParameters()) {
+                throw "Training parameters have no sensible values, "
+                            "won't train.";
+                return { origin, 0 };
+            }
+
+            REvol::epoch_t lastSuccess  = 0;
+            REvol::epoch_t epoch        = 0;
+            auto currentSuccess         = targetSuccess();
+            auto population             = generateInitialPopulation(origin);
+            auto* bestIndividual        = &(population.front());
+
+            // Initial evaluation of the population:
+
+            for (auto& individual : population) {
+                if (succeeds(individual)) {
+                    bestIndividual = &individual;
+                    goto out;
+                }
+            }
+            population.sort();
+
+            // Main loop:
+
+            do {
+                // Modify the (currently) worst individual:
+
+                auto& newIndividual = population.back();
+
+                modifyIndividual(
+                        newIndividual,
+                        std::make_pair(begin(population), end(population) -1),
+                        currentSuccess);
+
+                if (succeeds(newIndividual)) {
+                    bestIndividual = &newIndividual;
+                    break;
+                }
+
+                bestIndividual = &(population.front());
+                const auto& worstIndividual = population.at(population.size()-2);
+
+                // Check for global or, at least, local improvement:
+
+                if (! worstIndividual.isBetterThan(newIndividual)) {
+                    if (worstIndividual.timeToLive >= 0) {
+                        currentSuccess = pt1(
+                                currentSuccess,
+                                1.0,
+                                measurementEpochs());
+                    } else {
+                        currentSuccess = pt1(
+                                currentSuccess,
+                                -1.0,
+                                measurementEpochs());
+                    }
+                }
+
+                if (newIndividual.isBetterThan(*bestIndividual)) {
+                    lastSuccess = epoch;
+                    bestIndividual = &newIndividual;
+                    bestIndividual->timeToLive = static_cast<ptrdiff_t>(epoch);
+                }
+
+                // Sort the list and do a bit of caretaking:
+
+                agePopulation(std::make_pair(begin(population), end(population)));
+                population.sort();
+                currentSuccess = pt1(
+                        currentSuccess,
+                        0.0,
+                        measurementEpochs());
+                epoch += 1;
+            } while (epoch < maxEpochs()
+                    && epoch - lastSuccess <= maxNoSuccessEpochs());
+
+            out:
+            REvol::Result result = { *bestIndividual, epoch };
+            return result;
+        }
 
 
     private:
