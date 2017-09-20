@@ -6,6 +6,7 @@ set(test-wzalgorithm_SOURCES
 set(test-wzalgorithm_HEADERS
     peaks.h
     ackley.h
+    crossin.h
     REvolTest.h
     ParticleSwarmOptimizationTest.h)
 

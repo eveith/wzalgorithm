@@ -4,6 +4,7 @@
 
 #include "peaks.h"
 #include "ackley.h"
+#include "crossin.h"
 
 #include "REvol.h"
 #include "REvolTest.h"
@@ -90,6 +91,25 @@ TEST(REvolTest, testAckley)
     ASSERT_TRUE(result.bestIndividual.restrictions[0] + 1.0 < 1.000000001);
 }
 
+
+TEST(REvolTest, testCrossInTray)
+{
+    REvol revol;
+    revol.maxEpochs(5000);
+
+    Individual origin;
+    origin.scatter = {0.1, 0.1};
+    origin.parameters = {-10.0, 10.0};
+
+    auto succeeds = [](Individual& i) {
+        i.restrictions[0] = ::crossInTray(i.parameters[0], i.parameters[1]);
+        return i.restrictions[0] < 2.062;
+    };
+
+    auto result = revol.run(origin, succeeds);
+
+    ASSERT_TRUE(succeeds(result.bestIndividual));
+}
 
 
 TEST(REvolTest, testCompareIndividuals)

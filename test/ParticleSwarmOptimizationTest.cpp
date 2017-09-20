@@ -4,6 +4,7 @@
 
 #include "peaks.h"
 #include "ackley.h"
+#include "crossin.h"
 
 #include "ParticleSwarmOptimization.h"
 #include "ParticleSwarmOptimizationTest.h"
@@ -53,4 +54,22 @@ TEST(ParticleSwarmOptimizationTest, testAckley)
     ASSERT_NEAR(ackley(wzalgorithm::vector_t{ 0.0, 0.0 }), 0.0, 1e-6);
     ASSERT_TRUE(success);
     ASSERT_TRUE(ackley(p.bestParticle.bestPosition) + 1.0 < 1.0000000001);
+}
+
+
+TEST(ParticleSwarmOptimizationTest, testCrossInTray)
+{
+    ParticleSwarmOptimization pso;
+    pso.lowerBoundary(-10.0).upperBoundary(10.0).maxIterations(5000);
+
+    auto succeeds = [](Particle& p) {
+        p.currentFitness = ::crossInTray(
+                p.currentPosition[0],
+                p.currentPosition[1]);
+        return p.currentFitness < 2.062;
+    };
+
+    auto result = pso.run(2, succeeds);
+
+    ASSERT_TRUE(succeeds(result.bestParticle));
 }

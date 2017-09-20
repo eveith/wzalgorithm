@@ -5,6 +5,7 @@
 #include <benchmark/benchmark.h>
 
 #include "ackley.h"
+#include "crossin.h"
 #include "ParticleSwarmOptimization.h"
 #include "ParticleSwarmOptimizationBenchmark.h"
 
@@ -36,3 +37,22 @@ static void PsoAckleyBenchmark(benchmark::State& state)
     }
 }
 BENCHMARK(PsoAckleyBenchmark);
+
+
+
+static void PsoCrossInTrayBenchmark(benchmark::State& state)
+{
+    auto succeeds = [](Particle& p) {
+        p.currentFitness = ::crossInTray(
+                p.currentPosition[0],
+                p.currentPosition[1]);
+        return p.currentFitness < 2.062;
+    };
+
+    while (state.KeepRunning()) {
+        ParticleSwarmOptimization pso;
+        pso.lowerBoundary(-10.0).upperBoundary(10.0).maxIterations(5000);
+        auto result = pso.run(2, succeeds);
+    }
+}
+BENCHMARK(PsoCrossInTrayBenchmark);
