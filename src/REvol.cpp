@@ -169,14 +169,14 @@ namespace wzalgorithm {
 
     REvol::REvol():
             m_maxNoSuccessEpochs(std::numeric_limits<epoch_t>::max()),
-            m_populationSize(0),
-            m_eliteSize(0),
+            m_populationSize(30),
+            m_eliteSize(3),
             m_gradientWeight(1.0),
             m_successWeight(1.0),
-            m_eamin(std::numeric_limits<double>::min()),
+            m_eamin(1e-30),
             m_ebmin(1e-12),
             m_ebmax(1e-1),
-            m_startTTL(0),
+            m_startTTL(150),
             m_measurementEpochs(5000),
             m_targetSuccess(0.25),
             m_randomNumberGenerator(0xCAFEu)
@@ -553,14 +553,6 @@ namespace wzalgorithm {
             REvol::Individual const& origin,
             Evaluator const& succeeds)
     {
-        if (0 == startTTL()) {
-            startTTL(static_cast<ptrdiff_t>(populationSize()) * 3);
-        }
-
-        if (0 == measurementEpochs()) {
-            measurementEpochs(static_cast<epoch_t>(ceil(maxEpochs()/200.0)));
-        }
-
         if (!hasSensibleTrainingParameters()) {
             throw "Training parameters have no sensible values, "
                         "won't train.";
