@@ -31,6 +31,7 @@ static void REvolAckleyBenchmark(benchmark::State& state)
     while (state.KeepRunning()) {
         REvol revol;
         revol
+                .successWeight(1.5)
                 .maxEpochs(5000)
                 .maxNoSuccessEpochs(5000)
                 .run(revol.generateOrigin(dimensions), succeeds);

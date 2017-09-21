@@ -506,7 +506,7 @@ namespace wzalgorithm {
                 xlp *= 0.5;
             }
 
-            xlp *= exp(gradientWeight() * successRate);
+            xlp *= exp(3 * successWeight() * successRate);
         }
 
         // Now modify the new individual:
