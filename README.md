@@ -10,7 +10,7 @@ Winzent project. Currently, these are:
 
 REvol has been described in the following scientific publication:
 
-Ruppert, Martin, Eric MSP Veith, and Bernd Steinbach. "An Evolutionary
+Martin Rupper, Eric MSP Veith, and Bernd Steinbach. "An Evolutionary
 Training Algorithm for Artificial Neural Networks with Dynamic Offspring
 Spread and Implicit Gradient Information."
 

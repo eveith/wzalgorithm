@@ -1,3 +1,4 @@
+#include <ctime>
 #include <cmath>
 #include <tuple>
 #include <limits>
@@ -23,7 +24,7 @@ namespace wzalgorithm {
     ParticleSwarmOptimization::ParticleSwarmOptimization():
             m_swarmSize(DEFAULT_SWARM_SIZE),
             m_maxIterations(std::numeric_limits<size_t>::max()),
-            m_randomNumberGenerator(0xBEEFu)
+            m_randomNumberGenerator(static_cast<unsigned int>(std::time(0)))
     {
     }
 

@@ -1,3 +1,4 @@
+#include <ctime>
 #include <cfenv>
 #include <cmath>
 #include <limits>
@@ -179,7 +180,7 @@ namespace wzalgorithm {
             m_startTTL(150),
             m_measurementEpochs(5000),
             m_targetSuccess(0.25),
-            m_randomNumberGenerator(0xCAFEu)
+            m_randomNumberGenerator(static_cast<unsigned int>(std::time(0)))
     {
     }
 
