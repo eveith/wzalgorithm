@@ -1,12 +1,16 @@
 cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
-project(wzalgorithm VERSION 0.8.0.2 LANGUAGES CXX)
+project(wzalgorithm VERSION 0.8.1 LANGUAGES CXX)
 
+set_property(GLOBAL PROPERTY CXX_STANDARD 14)
 
+include(FindSWIG)
+include(FindBoost)
 include(GNUInstallDirs)
 include(CheckIncludeFileCXX)
 
 
 find_package(GTest)
+find_package(SWIG 3.0)
 find_package(Boost 1.58.0 REQUIRED COMPONENTS random)
 check_include_file_cxx("benchmark/benchmark.h" BENCHMARK_FOUND)
 

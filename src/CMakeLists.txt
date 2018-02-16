@@ -1,13 +1,17 @@
 set(wzalgorithm_SOURCES
     REvol.cpp
+    Result.cpp
     ParticleSwarmOptimization.cpp)
 
 set(wzalgorithm_HEADERS
     REvol.h
+    Result.h
     ParticleSwarmOptimization.h)
 
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
         OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
@@ -41,6 +45,37 @@ CONFIGURE_FILE(
     ${CMAKE_CURRENT_SOURCE_DIR}/libwzalgorithm.pc.in
     ${CMAKE_CURRENT_BINARY_DIR}/libwzalgorithm.pc)
 
+
+#
+# Bindings for other Languages
+#
+
+
+if (SWIG_FOUND)
+    include(UseSWIG)
+
+
+    set_source_files_properties(wzalgorithm.i PROPERTIES
+        CPLUSPLUS ON
+        SWIGFLAGS "-includeall")
+
+
+    include(FindPythonLibs)
+    find_package(PythonLibs)
+
+    if(PYTHONLIBS_FOUND)
+        include_directories(${PYTHON_INCLUDE_DIRS})
+        swig_add_library(wzalgorithm
+            LANGUAGE python
+            SOURCES wzalgorithm.i)
+        swig_link_libraries(wzalgorithm wzalgorithm ${PYTHON_LRARIES})
+    endif()
+endif()
+
+
+#
+# Installation
+#
 
 install(TARGETS wzalgorithm
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

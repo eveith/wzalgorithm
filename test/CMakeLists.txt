@@ -45,9 +45,6 @@ target_link_libraries(test_wzalgorithm
     ${GTEST_LIBRARIES}
     wzalgorithm)
 
-set_target_properties(test_wzalgorithm
-    PROPERTIES CXX_STANDARD 14)
-
 
 if (${BENCHMARK_FOUND})
     add_executable(benchmark_wzalgorithm
@@ -67,7 +64,4 @@ if (${BENCHMARK_FOUND})
         ${Boost_LIBRARIES}
         benchmark
         wzalgorithm)
-
-    set_target_properties(benchmark_wzalgorithm
-        PROPERTIES CXX_STANDARD 14)
 endif()
