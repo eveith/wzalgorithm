@@ -66,7 +66,7 @@ TEST(ParticleSwarmOptimizationTest, testCrossInTray)
         p.currentFitness = ::crossInTray(
                 p.currentPosition[0],
                 p.currentPosition[1]);
-        return p.currentFitness < 2.062;
+        return p.currentFitness < -2.0;
     };
 
     auto result = pso.run(2, succeeds);

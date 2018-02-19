@@ -65,3 +65,12 @@ if (${BENCHMARK_FOUND})
         benchmark
         wzalgorithm)
 endif()
+
+
+if (PYTHONLIBS_FOUND)
+    add_test(NAME python_bindings_test
+        COMMAND python3
+            -munittest
+            "${CMAKE_CURRENT_SOURCE_DIR}/test_wzalgorithm.py"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+endif()

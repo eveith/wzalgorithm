@@ -54,21 +54,23 @@ CONFIGURE_FILE(
 if (SWIG_FOUND)
     include(UseSWIG)
 
-
-    set_source_files_properties(wzalgorithm.i PROPERTIES
-        CPLUSPLUS ON
-        SWIGFLAGS "-includeall")
-
-
     include(FindPythonLibs)
     find_package(PythonLibs)
 
-    if(PYTHONLIBS_FOUND)
-        include_directories(${PYTHON_INCLUDE_DIRS})
-        swig_add_library(wzalgorithm
-            LANGUAGE python
-            SOURCES wzalgorithm.i)
-        swig_link_libraries(wzalgorithm wzalgorithm ${PYTHON_LRARIES})
+    if (PYTHONLIBS_FOUND)
+        set_source_files_properties(wzalgorithm-python.i PROPERTIES
+            CPLUSPLUS ON
+            SWIGFLAGS "-includeall")
+        if(PYTHONLIBS_FOUND)
+            include_directories(${PYTHON_INCLUDE_DIRS})
+            swig_add_library(wzalgorithm
+                LANGUAGE python
+                SOURCES wzalgorithm-python.i)
+            swig_link_libraries(wzalgorithm wzalgorithm ${PYTHON_LRARIES})
+
+            install(TARGETS ${SWIG_MODULE_example_REAL_NAME}
+                ${PYTHON_SITE_PACKAGES})
+        endif()
     endif()
 endif()
 

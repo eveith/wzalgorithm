@@ -46,7 +46,7 @@ static void PsoCrossInTrayBenchmark(benchmark::State& state)
         p.currentFitness = ::crossInTray(
                 p.currentPosition[0],
                 p.currentPosition[1]);
-        return p.currentFitness < 2.062;
+        return p.currentFitness < -2.062;
     };
 
     while (state.KeepRunning()) {
