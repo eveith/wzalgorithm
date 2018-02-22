@@ -5,6 +5,8 @@
 #include <cstddef>
 #include <functional>
 
+#include <iostream>
+
 #include <boost/random.hpp>
 #include <boost/ptr_container/ptr_vector.hpp>
 
@@ -599,10 +601,11 @@ namespace wzalgorithm {
                         0.0,
                         measurementEpochs());
                 epoch += 1;
+
             } while (epoch < maxEpochs()
                     && epoch - lastSuccess <= maxNoSuccessEpochs());
 
-            out:
+        out:
             return {
                 bestIndividual->restrictions[0],
                 bestIndividual->parameters };

@@ -176,7 +176,7 @@ namespace wzalgorithm {
             m_successWeight(1.0),
             m_eamin(1e-30),
             m_ebmin(1e-12),
-            m_ebmax(1e-1),
+            m_ebmax(1.0),
             m_startTTL(150),
             m_measurementEpochs(5000),
             m_targetSuccess(0.25),
