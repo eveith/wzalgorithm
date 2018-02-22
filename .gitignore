@@ -59,3 +59,4 @@ log
 qrc_*.cpp
 winzent-*.tar*
 .idea
+__pycache__
