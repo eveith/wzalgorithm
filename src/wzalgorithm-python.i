@@ -44,17 +44,10 @@ namespace wzalgorithm {
         {
             assert(nullptr != evaluator_);
             Py_INCREF(evaluator_);
-            std::cerr << "In constructor of " << this
-                      << ", refcnt of evaluator_(" << evaluator_ << ") is: "
-                      << evaluator_->ob_refcnt << "\n";
         }
 
-        virtual ~REvolSuccessPredicate()
+        ~REvolSuccessPredicate()
         {
-            std::cerr << "In destructor of " << this
-                      << ", refcnt of evaluator_(" << evaluator_ << ") is: "
-                      << Py_REFCNT(evaluator_) << "\n";
-            Py_DECREF(evaluator_);
         }
 
         bool operator()(REvol::Individual& i)
