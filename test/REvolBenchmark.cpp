@@ -6,6 +6,7 @@
 
 #include "ackley.h"
 #include "crossin.h"
+#include "eggholder.h"
 
 #include "REvol.h"
 #include "REvolBenchmark.h"
@@ -54,3 +55,22 @@ static void REvolCrossInTrayBenchmark(benchmark::State& state)
     }
 }
 BENCHMARK(REvolCrossInTrayBenchmark);
+
+
+
+
+static void REvolEggholderBenchmark(benchmark::State& state)
+{
+    auto succeeds = [](Individual& i) {
+        i.restrictions[0] = ::eggholder(i.parameters[0], i.parameters[1]);
+        return i.restrictions[0] < -959.6;
+    };
+
+    while (state.KeepRunning()) {
+        REvol revol;
+        revol.ebmax(512);
+        revol.maxEpochs(500000);
+        auto result = revol.run(revol.generateOrigin(2), succeeds);
+    }
+}
+BENCHMARK(REvolEggholderBenchmark);
