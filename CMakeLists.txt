@@ -14,6 +14,13 @@ find_package(SWIG 3.0)
 find_package(Boost 1.58.0 REQUIRED COMPONENTS random)
 check_include_file_cxx("benchmark/benchmark.h" BENCHMARK_FOUND)
 
+if (SWIG_FOUND)
+    include(UseSWIG)
+
+    include(FindPythonLibs)
+    find_package(PythonLibs)
+endif()
+
 
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/VERSION.in"

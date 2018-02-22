@@ -67,10 +67,8 @@ if (${BENCHMARK_FOUND})
 endif()
 
 
-if (PYTHONLIBS_FOUND)
+if (SWIG_FOUND AND PYTHONLIBS_FOUND)
     add_test(NAME python_bindings_test
-        COMMAND python3
-            -munittest
-            "${CMAKE_CURRENT_SOURCE_DIR}/test_wzalgorithm.py"
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+        COMMAND env PYTHONPATH=${CMAKE_BINARY_DIR}/src python3 -munittest
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/test")
 endif()

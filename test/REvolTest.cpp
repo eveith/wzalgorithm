@@ -97,16 +97,12 @@ TEST(REvolTest, testCrossInTray)
     REvol revol;
     revol.maxEpochs(5000);
 
-    Individual origin;
-    origin.scatter = {1, 1};
-    origin.parameters = {-10.0, 10.0};
-
     auto succeeds = [](Individual& i) {
         i.restrictions[0] = ::crossInTray(i.parameters[0], i.parameters[1]);
         return i.restrictions[0] < -2.062;
     };
 
-    auto result = revol.run(origin, succeeds);
+    auto result = revol.run(revol.generateOrigin(2), succeeds);
 
     ASSERT_TRUE(::crossInTray(result.parameters[0], result.parameters[1])
             < -2.0);
