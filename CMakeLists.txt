@@ -44,12 +44,6 @@ add_custom_target(srctar
 
 
 add_subdirectory(src)
-
-if (${GTEST_FOUND})
-    include(CTest)
-    enable_testing()
-    add_subdirectory(test)
-else()
-    message(AUTHOR_WARNING,
-        "GTest was not found; no unit tests will be available and `make check' will not work.")
-endif()
+include(CTest)
+enable_testing()
+add_subdirectory(test)

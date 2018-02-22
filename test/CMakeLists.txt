@@ -26,27 +26,29 @@ set(benchmark-wzalgorithm_HEADERS
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 
-add_executable(test_wzalgorithm
-    ${test-wzalgorithm_SOURCES})
+if (GTEST_FOUND)
+    add_executable(test_wzalgorithm
+        ${test-wzalgorithm_SOURCES})
 
-add_test(test_wzalgorithm
-    test_wzalgorithm)
+    add_test(test_wzalgorithm
+        test_wzalgorithm)
 
-target_include_directories(test_wzalgorithm
-    PUBLIC "${wzalgorithm_SOURCE_DIR}/src"
-    PUBLIC ${Boost_INCLUDE_DIRS}
-    PUBLIC ${GTEST_INCLUDE_DIRS})
+    target_include_directories(test_wzalgorithm
+        PUBLIC "${wzalgorithm_SOURCE_DIR}/src"
+        PUBLIC ${Boost_INCLUDE_DIRS}
+        PUBLIC ${GTEST_INCLUDE_DIRS})
 
-target_link_libraries(test_wzalgorithm
-    m
-    stdc++
-    pthread
-    ${Boost_LIBRARIES}
-    ${GTEST_LIBRARIES}
-    wzalgorithm)
+    target_link_libraries(test_wzalgorithm
+        m
+        stdc++
+        pthread
+        ${Boost_LIBRARIES}
+        ${GTEST_LIBRARIES}
+        wzalgorithm)
+endif()
 
 
-if (${BENCHMARK_FOUND})
+if (BENCHMARK_FOUND)
     add_executable(benchmark_wzalgorithm
         ${benchmark-wzalgorithm_SOURCES})
 
