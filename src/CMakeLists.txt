@@ -31,8 +31,7 @@ target_link_libraries(wzalgorithm
     ${Boost_LIBRARIES})
 
 set_target_properties(wzalgorithm
-    PROPERTIES SOVERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}"
-    CXX_STANDARD 14)
+    PROPERTIES SOVERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
 
 
 SET(PKG_CONFIG_REQUIRES "Boost")
@@ -57,13 +56,22 @@ if (SWIG_FOUND)
             CPLUSPLUS ON
             SWIGFLAGS "-includeall")
         include_directories(${PYTHON_INCLUDE_DIRS})
-        swig_add_library(wzalgorithm
-            LANGUAGE python
-            SOURCES wzalgorithm-python.i)
-        swig_link_libraries(wzalgorithm wzalgorithm ${PYTHON_LRARIES})
 
-        install(TARGETS ${SWIG_MODULE_example_REAL_NAME}
-            ${PYTHON_SITE_PACKAGES})
+        if (CMAKE_VERSION VERSION_LESS "3.8.0")
+            swig_add_module(wzalgorithm python wzalgorithm-python.i)
+        else()
+            swig_add_library(wzalgorithm
+                LANGUAGE python
+                SOURCES wzalgorithm-python.i)
+        endif()
+
+        swig_link_libraries(wzalgorithm wzalgorithm ${PYTHON_LIBRARIES})
+
+        install(
+            FILES ${CMAKE_CURRENT_BINARY_DIR}/wzalgorithm.py
+            DESTINATION ${PYTHON_INSTALL_PACKAGES_DIR})
+        install(TARGETS ${SWIG_MODULE_wzalgorithm_REAL_NAME}
+            LIBRARY DESTINATION ${PYTHON_INSTALL_PACKAGES_DIR})
     endif()
 endif()
 

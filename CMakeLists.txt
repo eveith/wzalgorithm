@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
-project(wzalgorithm VERSION 0.8.2 LANGUAGES CXX)
+project(wzalgorithm VERSION 0.8.1 LANGUAGES CXX)
 
-set_property(GLOBAL PROPERTY CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 14)
 
 include(FindSWIG)
 include(FindBoost)
@@ -22,6 +22,18 @@ if (SWIG_FOUND)
 endif()
 
 
+if (PYTHONLIBS_FOUND)
+    execute_process(
+        COMMAND python3
+            -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"
+        OUTPUT_VARIABLE PYTHON_INSTALL_PACKAGES_DIR
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
+
+set(PYTHON_INSTALL_PACKAGES_DIR ${CMAKE_INSTALL_LIBDIR}
+    CACHE PATH "Installation path for the Python bindings")
+
+
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/VERSION.in"
     "${CMAKE_CURRENT_BINARY_DIR}/VERSION")
@@ -39,6 +51,8 @@ add_custom_target(srctar
         "--xform='s,^,libwzalgorithm-${wzalgorithm_VERSION}/,'"
         "--exclude-vcs" "--exclude-backups"
         "--exclude=Makefile" "--exclude='*.so*'"
+        "--exclude=__pycache__" "--exclude='*.pyc'"
+        "--exclude='CMakeCache*'" "--exclude=CMakeFiles"
         "src" "test" "CMakeLists.txt"
         "README.md" "COPYING" "VERSION.in" "wzalgorithm.spec.in")
 
