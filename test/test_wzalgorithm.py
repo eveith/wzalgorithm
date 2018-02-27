@@ -49,7 +49,7 @@ class TestREvol(unittest.TestCase):
         revol = wzalgorithm.REvol()
         origin = revol.generateOrigin(2)
 
-        revol.maxEpochs(10000)
+        revol.maxEpochs(50000)
         result = revol.run(origin,
                            wzalgorithm.REvolSuccessPredicate(EggholderEvaluator()))
         self.assertTrue(result.error < -959)

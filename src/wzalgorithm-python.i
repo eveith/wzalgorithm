@@ -48,6 +48,7 @@ namespace wzalgorithm {
 
         ~REvolSuccessPredicate()
         {
+            Py_DECREF(evaluator_);
         }
 
         bool operator()(REvol::Individual& i)
@@ -78,12 +79,12 @@ namespace wzalgorithm {
 
 %feature("director") wzalgorithm::REvolSuccessPredicate;
 %extend wzalgorithm::REvol {
-    %template(run) run<REvolSuccessPredicate>;
+    %template(run) run<REvolSuccessPredicate&>;
 }
 
 
-%feature("shadow") wzalgorithm::REvol::run(REvol::Individual const&, REvolSuccessPredicate&) %{
-    def run(self, individual, evaluator):
-        print("Hello, World!")
-        $action
-%}
+//%feature("shadow") REvol::run(REvol::Individual const&, REvolSuccessPredicate&) %{
+//    def run(self, individual, evaluator):
+//        print("Hello, World!")
+//        $action
+//%}
