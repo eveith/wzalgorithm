@@ -78,7 +78,12 @@ namespace wzalgorithm {
 
 %feature("director") wzalgorithm::REvolSuccessPredicate;
 %extend wzalgorithm::REvol {
-   %template(runPredicated) run<REvolSuccessPredicate>;
+    %template(run) run<REvolSuccessPredicate>;
 }
 
 
+%feature("shadow") wzalgorithm::REvol::run(REvol::Individual const&, REvolSuccessPredicate&) %{
+    def run(self, individual, evaluator):
+        print("Hello, World!")
+        $action
+%}

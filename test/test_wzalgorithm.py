@@ -41,8 +41,8 @@ class TestREvol(unittest.TestCase):
         origin = revol.generateOrigin(2)
 
         revol.maxEpochs(10000)
-        result = revol.runPredicated(origin,
-                                     wzalgorithm.REvolSuccessPredicate(CrossinTrayEvaluator()))
+        result = revol.run(origin,
+                           wzalgorithm.REvolSuccessPredicate(CrossinTrayEvaluator()))
         self.assertTrue(result.error < -2.07)
 
     def test_eggholder(self):
@@ -50,8 +50,8 @@ class TestREvol(unittest.TestCase):
         origin = revol.generateOrigin(2)
 
         revol.maxEpochs(10000)
-        result = revol.runPredicated(origin,
-                                     wzalgorithm.REvolSuccessPredicate(EggholderEvaluator()))
+        result = revol.run(origin,
+                           wzalgorithm.REvolSuccessPredicate(EggholderEvaluator()))
         self.assertTrue(result.error < -959)
 
 
